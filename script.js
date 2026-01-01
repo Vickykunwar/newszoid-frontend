@@ -45,7 +45,7 @@
     user: null,
     location: window.userLocation || { city: 'Delhi', country: 'India' },
     language: localStorage.getItem('newszoid_language') || 'en',
-    theme: localStorage.getItem('newszoid_theme') || 'light'
+    theme: localStorage.getItem('newszoid_theme') || 'dark'
   };
 
   // ============================================================
@@ -866,8 +866,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.style.display = 'none';
   }
 });
-if (localStorage.getItem('newszoid_theme') === 'dark') {
+const savedTheme = localStorage.getItem('newszoid_theme');
+if (savedTheme === 'dark' || !savedTheme) {
   document.body.classList.add('dark-mode');
+  if (!savedTheme) localStorage.setItem('newszoid_theme', 'dark');
 }
 
 function isNewYear2026() {

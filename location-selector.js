@@ -342,8 +342,20 @@
                 if (location.city) {
                     window.userLocation = location;
                     updateLocationDisplay(location.city);
+                    return; // Found saved location
                 }
             }
+
+            // If no saved location, wait 3 seconds then fallback to Delhi
+            // This prevents the "Detecting location..." hang
+            setTimeout(() => {
+                const badge = document.getElementById('currentLocation');
+                if (badge && (badge.textContent.includes('Detecting') || badge.textContent === '')) {
+                    console.log('📍 Location detection timeout - falling back to Delhi');
+                    selectCity({ city: 'Delhi', lat: 28.7041, lon: 77.1025 });
+                }
+            }, 3000);
+
         } catch (e) {
             console.warn('Failed to load saved location', e);
         }

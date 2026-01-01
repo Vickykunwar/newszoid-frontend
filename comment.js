@@ -5,7 +5,8 @@
 
 class CommentManager {
     constructor() {
-        this.apiURL = '/api/comments';
+        const base = window.API_BASE || 'https://newszoid-backend-production.up.railway.app/api';
+        this.apiURL = `${base}/comments`;
         this.storageKey = 'newszoid_comments_v2';
         this.comments = new Map(); // articleId -> comments[]
         this.init();
@@ -109,7 +110,7 @@ class CommentManager {
     async deleteComment(articleId, commentId) {
         const comments = this.comments.get(articleId) || [];
         const index = comments.findIndex(c => c.id === commentId);
-        
+
         if (index === -1) return false;
 
         // Remove from local
@@ -133,7 +134,7 @@ class CommentManager {
     async likeComment(articleId, commentId) {
         const comments = this.comments.get(articleId) || [];
         const comment = comments.find(c => c.id === commentId);
-        
+
         if (!comment) return false;
 
         comment.likes = (comment.likes || 0) + 1;
@@ -170,7 +171,7 @@ class CommentManager {
 
         // Check if comment box already exists
         let commentBox = articleElement.querySelector('.comment-box-inline');
-        
+
         if (commentBox) {
             commentBox.remove();
             return;
@@ -237,7 +238,7 @@ class CommentManager {
         }
 
         commentsList.innerHTML = comments.map(comment => this.renderCommentHTML(comment, articleId)).join('');
-        
+
         // Attach event listeners to comment actions
         this.setupCommentActionListeners(commentsList, articleId);
     }
@@ -285,7 +286,7 @@ class CommentManager {
         // Submit comment
         const submitBtn = commentBox.querySelector('.submit-comment-btn');
         const textarea = commentBox.querySelector('.comment-input');
-        
+
         if (submitBtn && textarea) {
             submitBtn.addEventListener('click', async () => {
                 await this.handleSubmitComment(articleId, textarea, commentBox);
@@ -339,7 +340,7 @@ class CommentManager {
 
     async handleSubmitComment(articleId, textarea, commentBox) {
         const text = textarea.value.trim();
-        
+
         if (!text) {
             this.showToast('Please write a comment', 'warning');
             return;
@@ -357,7 +358,7 @@ class CommentManager {
             textarea.value = '';
             await this.renderComments(articleId, commentBox);
             this.showToast('Comment posted!', 'success');
-            
+
             // Update comment count
             this.updateCommentCount(articleId);
         } catch (error) {
@@ -416,20 +417,20 @@ class CommentManager {
     formatTimeAgo(timestamp) {
         const now = Date.now();
         const diff = now - timestamp;
-        
+
         const seconds = Math.floor(diff / 1000);
         const minutes = Math.floor(seconds / 60);
         const hours = Math.floor(minutes / 60);
         const days = Math.floor(hours / 24);
-        
+
         if (seconds < 60) return 'just now';
         if (minutes < 60) return `${minutes}m ago`;
         if (hours < 24) return `${hours}h ago`;
         if (days < 7) return `${days}d ago`;
-        
-        return new Date(timestamp).toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric' 
+
+        return new Date(timestamp).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
         });
     }
 
@@ -438,7 +439,7 @@ class CommentManager {
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
         toast.setAttribute('role', 'alert');
-        
+
         toast.style.cssText = `
             position: fixed;
             bottom: 20px;

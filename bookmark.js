@@ -6,7 +6,8 @@
 class BookmarkManager {
     constructor() {
         this.storageKey = 'newszoid_bookmarks_v2';
-        this.apiURL = '/api/bookmarks';
+        const base = window.API_BASE || 'https://newszoid-backend-production.up.railway.app/api';
+        this.apiURL = `${base}/bookmarks`;
         this.bookmarks = [];
         this.syncInProgress = false;
         this.init();
@@ -15,12 +16,12 @@ class BookmarkManager {
     async init() {
         // Load from localStorage first
         this.loadFromStorage();
-        
+
         // Try to sync with backend if user is logged in
         if (this.isUserLoggedIn()) {
             await this.syncWithBackend();
         }
-        
+
         // Update UI
         this.renderBookmarks();
     }
@@ -59,7 +60,7 @@ class BookmarkManager {
 
             if (response.ok) {
                 const serverBookmarks = await response.json();
-                
+
                 // Merge with local bookmarks (server takes precedence)
                 this.mergeBookmarks(serverBookmarks.data || []);
                 this.saveToStorage();
@@ -73,19 +74,19 @@ class BookmarkManager {
 
     mergeBookmarks(serverBookmarks) {
         const merged = new Map();
-        
+
         // Add server bookmarks first
         serverBookmarks.forEach(bookmark => {
             merged.set(bookmark.id, bookmark);
         });
-        
+
         // Add local bookmarks that aren't on server
         this.bookmarks.forEach(bookmark => {
             if (!merged.has(bookmark.id)) {
                 merged.set(bookmark.id, bookmark);
             }
         });
-        
+
         this.bookmarks = Array.from(merged.values());
     }
 
@@ -175,7 +176,7 @@ class BookmarkManager {
     renderBookmarks() {
         const container = document.getElementById('savedArticlesList');
         const placeholder = document.getElementById('noSavedPlaceholder');
-        
+
         if (!container) return;
 
         if (this.bookmarks.length === 0) {
@@ -242,7 +243,7 @@ class BookmarkManager {
             btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
                 const bookmarkId = btn.dataset.bookmarkId;
-                
+
                 if (confirm('Remove this saved article?')) {
                     await this.remove(bookmarkId);
                     this.showToast('Article removed from saved items', 'success');
@@ -261,7 +262,7 @@ class BookmarkManager {
         const date = new Date(timestamp);
         const now = Date.now();
         const diff = now - timestamp;
-        
+
         if (diff < 3600000) { // Less than 1 hour
             const mins = Math.floor(diff / 60000);
             return `${mins} min ago`;
@@ -269,9 +270,9 @@ class BookmarkManager {
             const hours = Math.floor(diff / 3600000);
             return `${hours}h ago`;
         } else {
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric' 
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
             });
         }
     }
@@ -281,9 +282,9 @@ class BookmarkManager {
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
         toast.setAttribute('role', 'alert');
-        
+
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);

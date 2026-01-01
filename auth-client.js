@@ -5,7 +5,9 @@
 
 class AuthManager {
     constructor() {
-        this.apiURL = '/api/auth';
+        // Use global API_BASE from script.js or fallback to production
+        const base = window.API_BASE || 'https://newszoid-backend-production.up.railway.app/api';
+        this.apiURL = `${base}/auth`;
         this.currentUser = null;
         this.token = null;
         this.init();
@@ -38,7 +40,7 @@ class AuthManager {
         } catch (error) {
             console.warn('Session check failed:', error);
         }
-        
+
         this.currentUser = null;
         localStorage.removeItem('newszoid_loggedInUser');
         return false;
@@ -78,10 +80,10 @@ class AuthManager {
                 this.currentUser = data.user;
                 localStorage.setItem('newszoid_loggedInUser', data.user.name);
                 this.updateUI();
-                
+
                 // Trigger event for other components
-                window.dispatchEvent(new CustomEvent('user-logged-in', { 
-                    detail: { user: data.user } 
+                window.dispatchEvent(new CustomEvent('user-logged-in', {
+                    detail: { user: data.user }
                 }));
 
                 return { success: true, user: data.user };
@@ -122,9 +124,9 @@ class AuthManager {
                 this.currentUser = data.user;
                 localStorage.setItem('newszoid_loggedInUser', data.user.name);
                 this.updateUI();
-                
-                window.dispatchEvent(new CustomEvent('user-registered', { 
-                    detail: { user: data.user } 
+
+                window.dispatchEvent(new CustomEvent('user-registered', {
+                    detail: { user: data.user }
                 }));
 
                 return { success: true, user: data.user };
@@ -152,9 +154,9 @@ class AuthManager {
         this.currentUser = null;
         localStorage.removeItem('newszoid_loggedInUser');
         this.updateUI();
-        
+
         window.dispatchEvent(new CustomEvent('user-logged-out'));
-        
+
         // Redirect to home
         window.location.href = '/';
     }
@@ -210,7 +212,7 @@ class AuthManager {
         // Modal switches
         const showRegisterLink = document.getElementById('showRegisterLink');
         const showLoginLink = document.getElementById('showLoginLink');
-        
+
         if (showRegisterLink) {
             showRegisterLink.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -246,7 +248,7 @@ class AuthManager {
     // ============================================================
     async handleLoginSubmit(e) {
         e.preventDefault();
-        
+
         const email = document.getElementById('loginEmail')?.value.trim();
         const password = document.getElementById('loginPassword')?.value;
         const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -268,7 +270,7 @@ class AuthManager {
             if (result.success) {
                 this.showToast('Login successful!', 'success');
                 this.closeModals();
-                
+
                 // Reset form
                 e.target.reset();
             }
@@ -285,7 +287,7 @@ class AuthManager {
 
     async handleRegisterSubmit(e) {
         e.preventDefault();
-        
+
         const name = document.getElementById('registerName')?.value.trim();
         const email = document.getElementById('registerEmail')?.value.trim();
         const password = document.getElementById('registerPassword')?.value;
@@ -320,7 +322,7 @@ class AuthManager {
             if (result.success) {
                 this.showToast('Registration successful! Welcome!', 'success');
                 this.closeModals();
-                
+
                 // Reset form
                 e.target.reset();
             }
@@ -354,7 +356,7 @@ class AuthManager {
         if (modal) {
             modal.style.display = 'flex';
             modal.setAttribute('aria-hidden', 'false');
-            
+
             // Focus first input
             setTimeout(() => {
                 const firstInput = modal.querySelector('input');
@@ -368,7 +370,7 @@ class AuthManager {
         if (modal) {
             modal.style.display = 'flex';
             modal.setAttribute('aria-hidden', 'false');
-            
+
             setTimeout(() => {
                 const firstInput = modal.querySelector('input');
                 if (firstInput) firstInput.focus();
@@ -390,7 +392,7 @@ class AuthManager {
         document.querySelectorAll('.modal').forEach(modal => {
             modal.style.display = 'none';
             modal.setAttribute('aria-hidden', 'true');
-            
+
             // Reset forms
             const form = modal.querySelector('form');
             if (form) form.reset();
@@ -439,7 +441,7 @@ class AuthManager {
         toast.textContent = message;
         toast.setAttribute('role', 'alert');
         toast.setAttribute('aria-live', 'polite');
-        
+
         toast.style.cssText = `
             position: fixed;
             bottom: 20px;

@@ -5,7 +5,10 @@
 
 class CommentManager {
     constructor() {
-        const base = window.API_BASE || 'https://newszoid-backend-production.up.railway.app/api';
+        const base =
+            window.location.hostname.includes('newszoid.com')
+                ? 'https://newszoid-backend-production.up.railway.app/api'
+                : 'https://newszoid-backend-production.up.railway.app/api';
         this.apiURL = `${base}/comments`;
         this.storageKey = 'newszoid_comments_v2';
         this.comments = new Map(); // articleId -> comments[]

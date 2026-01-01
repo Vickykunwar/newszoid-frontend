@@ -5,8 +5,10 @@
 
 class AuthManager {
     constructor() {
-        // Use global API_BASE from script.js or fallback to production
-        const base = window.API_BASE || 'https://newszoid-backend-production.up.railway.app/api';
+        const base =
+            window.location.hostname.includes('newszoid.com')
+                ? 'https://newszoid-backend-production.up.railway.app/api'
+                : 'https://newszoid-backend-production.up.railway.app/api';
         this.apiURL = `${base}/auth`;
         this.currentUser = null;
         this.token = null;

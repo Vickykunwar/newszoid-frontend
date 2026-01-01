@@ -6,7 +6,10 @@
 class BookmarkManager {
     constructor() {
         this.storageKey = 'newszoid_bookmarks_v2';
-        const base = window.API_BASE || 'https://newszoid-backend-production.up.railway.app/api';
+        const base =
+            window.location.hostname.includes('newszoid.com')
+                ? 'https://newszoid-backend-production.up.railway.app/api'
+                : 'https://newszoid-backend-production.up.railway.app/api';
         this.apiURL = `${base}/bookmarks`;
         this.bookmarks = [];
         this.syncInProgress = false;

@@ -31,7 +31,9 @@
         'culture': { query: 'culture art tradition' },
         'global-politics': { query: 'world politics' },
         'global-finance': { query: 'world finance economy' },
-        'health': { query: 'health medicine doctor' }
+        'health': { query: 'health medicine doctor' },
+        'india': { query: 'india updates' },
+        'world': { query: 'world news' }
     };
 
     // ============================================================
@@ -221,7 +223,8 @@
 
                 container.innerHTML = '<div class="loading">Loading news...</div>';
 
-                const response = await newsAPI.getNews('general', 1, 20);
+                const city = window.userLocation?.city || 'Delhi';
+                const response = await newsAPI.getNews('general', 1, 20, city);
 
                 if (response.ok && response.data) {
                     container.innerHTML = '';
@@ -321,7 +324,8 @@
 
                 try {
                     // Fetch top 3 articles for this category using the mapped query
-                    const response = await newsAPI.getNews(cfg.query, 1, 3);
+                    const city = window.userLocation?.city || 'Delhi';
+                    const response = await newsAPI.getNews(cfg.query, 1, 3, city);
 
                     if (response.ok && response.data && response.data.length > 0) {
                         categoryEl.innerHTML = '';

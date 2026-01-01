@@ -30,7 +30,10 @@
     'culture': { query: 'culture art tradition', container: 'category-culture' },
     'global-politics': { query: 'world politics', container: 'category-global-politics' },
     'global-finance': { query: 'world finance economy', container: 'category-global-finance' },
-    'health': { query: 'health medicine doctor', container: 'category-health' }
+    'health': { query: 'health medicine doctor', container: 'category-health' },
+    'legal': { query: 'legal court law', container: 'category-legal' },
+    'india': { query: 'india updates', container: 'category-india' },
+    'world': { query: 'world international news', container: 'category-world' }
   };
 
   // ============================================================
@@ -84,15 +87,15 @@
       }
     }
 
-    async getNews(category = 'general', page = 1, pageSize = 10) {
+    async getNews(category = 'general', page = 1, pageSize = 10, location = 'Delhi') {
       return this.fetchWithCache(
-        `${this.baseURL}/news?category=${encodeURIComponent(category)}&page=${page}&pageSize=${pageSize}`
+        `${this.baseURL}/news?category=${encodeURIComponent(category)}&location=${encodeURIComponent(location)}&page=${page}&pageSize=${pageSize}`
       );
     }
 
     async getLocalNews(location) {
       return this.fetchWithCache(
-        `${this.baseURL}/news/local?location=${encodeURIComponent(location)}`
+        `${this.baseURL}/news?category=local&location=${encodeURIComponent(location)}`
       );
     }
   }
@@ -293,7 +296,8 @@
     `;
 
     try {
-      const response = await newsAPI.getNews('general', 1, 1);
+      const location = AppState.location.city || 'Delhi';
+      const response = await newsAPI.getNews('general', 1, 1, location);
 
       if (response.ok && response.data && response.data.length > 0) {
         container.innerHTML = '';
@@ -328,7 +332,8 @@
     `;
 
     try {
-      const response = await newsAPI.getNews('world', 1, 1);
+      const location = AppState.location.city || 'Delhi';
+      const response = await newsAPI.getNews('world', 1, 1, location);
 
       if (response.ok && response.data && response.data.length > 0) {
         container.innerHTML = '';
@@ -371,7 +376,8 @@
       `;
 
       try {
-        const response = await newsAPI.getNews(config.query, 1, 3);
+        const location = AppState.location.city || 'Delhi';
+        const response = await newsAPI.getNews(config.query, 1, 3, location);
 
         if (response.ok && response.data && response.data.length > 0) {
           container.innerHTML = '';

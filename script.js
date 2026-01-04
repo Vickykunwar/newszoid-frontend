@@ -910,6 +910,42 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('enterSiteBtn').addEventListener('click', closeNewYear);
   document.getElementById('skipNewYearBtn').addEventListener('click', closeNewYear);
 });
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    console.log('🔁 New Service Worker activated');
+    window.location.reload();
+  });
+}
+const accountBtn = document.getElementById("accountBtn");
+const drawer = document.getElementById("accountDrawer");
+const overlay = document.getElementById("accountOverlay");
+const content = document.getElementById("authContent");
 
+accountBtn.onclick = () => {
+  drawer.classList.add("active");
+  overlay.classList.add("active");
+  renderAccount();
+};
 
+overlay.onclick = closeDrawer;
+document.getElementById("closeDrawer").onclick = closeDrawer;
+
+function closeDrawer() {
+  drawer.classList.remove("active");
+  overlay.classList.remove("active");
+}
+
+function renderAccount() {
+  const user = JSON.parse(localStorage.getItem("newszoid_loggedInUser") || localStorage.getItem("newszoid_user"));
+
+  if (!user) {
+    if (typeof renderLogin === 'function') {
+      renderLogin();
+    }
+  } else {
+    if (typeof renderProfile === 'function') {
+      renderProfile(user);
+    }
+  }
+}
 

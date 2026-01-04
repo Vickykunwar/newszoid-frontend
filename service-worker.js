@@ -7,23 +7,53 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      // Delete old caches
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames
+          .filter(name => name !== CACHE_NAME)
+          .map(name => caches.delete(name))
+      );
+
+      // Take control immediately
+      await self.clients.claim();
+    })()
+  );
 });
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // ❌ NEVER cache API responses
-  if (url.pathname.startsWith('/api') || url.hostname.includes('railway.app')) {
-    event.respondWith(fetch(event.request));
+  // 1. NEWS API & DATA: Always Network-Only (Never cache)
+  if (url.pathname.startsWith('/api') || url.hostname.includes('railway.app') || url.hostname.includes('newsapi.org')) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return new Response(JSON.stringify({ ok: false, error: 'Offline' }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
     return;
   }
 
-  // ✅ Cache static assets only
+  // 2. STATIC ASSETS: Network-First (Try network, fallback to cache)
+  // This ensures users get updates immediately if online, but works offline.
   event.respondWith(
-    caches.match(event.request).then(resp => {
-      return resp || fetch(event.request);
-    })
+    fetch(event.request)
+      .then(response => {
+        // Update cache with fresh version
+        const resClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, resClone);
+        });
+        return response;
+      })
+      .catch(() => {
+        // If network fails, serve from cache
+        return caches.match(event.request);
+      })
   );
 });
 

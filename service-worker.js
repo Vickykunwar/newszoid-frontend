@@ -1,7 +1,7 @@
 const CACHE_NAME = 'newszoid-v1';
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(['/','/index.html','/style.css','/script.js']))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(['/', '/index.html', '/style.css', '/script.js']))
   );
   self.skipWaiting();
 });
@@ -11,9 +11,19 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  // simple cache-first for assets
+  const url = new URL(event.request.url);
+
+  // ❌ NEVER cache API responses
+  if (url.pathname.startsWith('/api') || url.hostname.includes('railway.app')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // ✅ Cache static assets only
   event.respondWith(
-    caches.match(event.request).then(resp => resp || fetch(event.request))
+    caches.match(event.request).then(resp => {
+      return resp || fetch(event.request);
+    })
   );
 });
 

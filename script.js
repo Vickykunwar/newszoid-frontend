@@ -55,7 +55,7 @@
     constructor(baseURL) {
       this.baseURL = baseURL;
       this.cache = new Map();
-      this.cacheDuration = 5 * 60 * 1000; // 5 minutes
+      this.cacheDuration = 60 * 1000; // 1 minute max
     }
 
     async fetchWithCache(url, options = {}) {
@@ -89,9 +89,10 @@
     }
 
     async getNews(category = 'general', page = 1, pageSize = 10, location = 'Delhi') {
-      return this.fetchWithCache(
-        `${this.baseURL}/news?category=${encodeURIComponent(category)}&location=${encodeURIComponent(location)}&page=${page}&pageSize=${pageSize}`
-      );
+      return fetch(
+        `${this.baseURL}/news?category=${encodeURIComponent(category)}&location=${encodeURIComponent(location)}&page=${page}&pageSize=${pageSize}`,
+        { cache: 'no-store' }
+      ).then(r => r.json());
     }
 
     async getLocalNews(location) {
@@ -825,6 +826,16 @@
   window.AppState = AppState;
 
   console.log('✅ Complete script loaded successfully');
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      console.log('🔄 Tab focused – refreshing news');
+      loadTopStory();
+      loadWorldStory();
+      loadCategoryNews();
+    }
+  });
+
 
 })();
 const isFirstVisit = !localStorage.getItem('newszoid_onboarding_done');

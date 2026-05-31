@@ -1327,13 +1327,18 @@ function renderAnalystFeed(summaryText, animate = false) {
 function typeWriter(text, element, speed = 12, callback) {
   let i = 0;
   const content = String(text || '');
-  element.textContent = '';
+  element.innerHTML = '';
   if (!content) {
     if (callback) callback();
     return;
   }
   const timer = setInterval(() => {
-    element.textContent += content[i];
+    if (content[i] === '<') {
+      while (i < content.length && content[i] !== '>') {
+        i++;
+      }
+    }
+    element.innerHTML = content.substring(0, i + 1);
     i++;
     if (i >= content.length) {
       clearInterval(timer);

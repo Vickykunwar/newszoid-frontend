@@ -811,15 +811,15 @@ function renderNewsFeed(newsArr) {
               </div>
               <span class="news-relevance-badge">${relevance}% match</span>
             </div>
-            <div class="news-headline" style="font-size: 15px; font-weight: bold;">${item.headline}</div>
+            <div class="news-headline" style="font-size: 15px; font-weight: bold;">${item.headline || 'Industry Update'}</div>
             <div class="news-summary">${item.summary || ''}</div>
             <div class="news-source" style="margin-top: 8px;">
               <span>📌 ${item.source} • ${item.time || 'Today'}</span>
             </div>
             <div class="news-actions-row">
-              <button class="btn-news-action" onclick="saveNewsItem('${item.headline.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">Save</button>
-              <button class="btn-news-action" onclick="shareNewsItem('${item.headline.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">Share</button>
-              <button class="btn-news-action dismiss-btn" onclick="dismissNewsItem(${idx}, '${item.headline.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">✕ Not relevant</button>
+              <button class="btn-news-action" onclick="saveNewsItem('${(item.headline || '').replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">Save</button>
+              <button class="btn-news-action" onclick="shareNewsItem('${(item.headline || '').replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">Share</button>
+              <button class="btn-news-action dismiss-btn" onclick="dismissNewsItem(${idx}, '${(item.headline || '').replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">✕ Not relevant</button>
             </div>
           </div>
         `;

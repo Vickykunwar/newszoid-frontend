@@ -129,9 +129,11 @@ window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('dashboard').style.display = 'block';
       setupDashboard(true);
       updateDailyBrief(buildProfileSeedData());
-      fetchNews();
-      fetchRates();
-      fetchAnalyst();
+      fetchNews().finally(() => {
+        fetchRates().finally(() => {
+          fetchAnalyst();
+        });
+      });
       scheduleSmartPanels();
     } catch (e) {
       console.error('Error loading saved profile', e);
@@ -520,7 +522,7 @@ function switchAlertsPanel() {
 
 async function callAPI(endpoint, payload) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000);
+  const timeout = setTimeout(() => controller.abort(), 25000);
   let res;
 
   try {
@@ -531,7 +533,7 @@ async function callAPI(endpoint, payload) {
       signal: controller.signal
     });
   } catch (e) {
-    if (e.name === 'AbortError') throw new Error('Request timed out after 10 seconds. Please try again.');
+    if (e.name === 'AbortError') throw new Error('Request timed out after 25 seconds. Please try again.');
     throw e;
   } finally {
     clearTimeout(timeout);
@@ -658,7 +660,6 @@ async function fetchRates() {
   const { city, biz, items } = STATE;
   trackEvent('rates_fetch_triggered');
   if (items.length === 0) {
-    alert('Please go back to setup and add items/materials in Step 3.');
     return;
   }
 
@@ -816,9 +817,9 @@ function renderNewsFeed(newsArr) {
               <span>📌 ${item.source} • ${item.time || 'Today'}</span>
             </div>
             <div class="news-actions-row">
-              <button class="btn-news-action" onclick="saveNewsItem('${item.headline.replace(/'/g, "\\'")}')">Save</button>
-              <button class="btn-news-action" onclick="shareNewsItem('${item.headline.replace(/'/g, "\\'")}')">Share</button>
-              <button class="btn-news-action dismiss-btn" onclick="dismissNewsItem(${idx}, '${item.headline.replace(/'/g, "\\'")}')">✕ Not relevant</button>
+              <button class="btn-news-action" onclick="saveNewsItem('${item.headline.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">Save</button>
+              <button class="btn-news-action" onclick="shareNewsItem('${item.headline.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">Share</button>
+              <button class="btn-news-action dismiss-btn" onclick="dismissNewsItem(${idx}, '${item.headline.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')">✕ Not relevant</button>
             </div>
           </div>
         `;
@@ -886,7 +887,7 @@ function showToast(message, type = 'success') {
 function renderRatesFeed(ratesArr) {
   const container = document.getElementById('rates-container');
   if (!container) return;
-  lastFetchedRates = ratesArr || [];
+  if (ratesArr && ratesArr !== DEMO_DATA.rates) lastFetchedRates = ratesArr;
 
   if (!ratesArr || ratesArr.length === 0) {
     container.innerHTML = `
@@ -1090,7 +1091,8 @@ function checkStoredPriceAlerts(ratesArr) {
       safeStorage('set', dedupeKey, Date.now());
       const text = `${alert.material} crossed your alert threshold - now ${price.toLocaleString('en-IN')}`;
       const waLink = `https://wa.me/?text=${encodeURIComponent(`Newszoid BI Alert: ${text}`)}`;
-      showToast(`Alert: ${text} ${waLink}`, 'danger');
+      showToast(`Alert: ${text}`, 'danger');
+      window.open(waLink, '_blank');
     });
   } catch (e) {
     console.warn('Price alert check failed:', e);
@@ -1113,7 +1115,8 @@ function checkWhatsAppSpikeAlerts(ratesArr) {
 
     const message = `${material} moved ${pct.toFixed(1)}% on Newszoid BI. Current rate: ${rate.toLocaleString('en-IN')}`;
     const waLink = `https://wa.me/${wa.number}?text=${encodeURIComponent(message)}`;
-    showToast(`WhatsApp price spike ready: ${material} ${pct.toFixed(1)}% ${waLink}`, 'danger');
+    showToast(`WhatsApp price spike ready: ${material} ${pct.toFixed(1)}%`, 'danger');
+    window.open(waLink, '_blank');
   } catch (e) {
     console.warn('WhatsApp spike alert failed:', e);
   }
@@ -1428,7 +1431,7 @@ function getShareProfile() {
 
 function shareDashboard() {
   try {
-    const shareData = btoa(unescape(encodeURIComponent(JSON.stringify(getShareProfile()))));
+    const shareData = btoa(encodeURIComponent(JSON.stringify(getShareProfile())).replace(/%([0-9A-F]{2})/g, (m, p1) => String.fromCharCode(parseInt(p1, 16))));
     const shareURL = `https://newszoid.com/dashboard?ref=${shareData}`;
     navigator.clipboard.writeText(shareURL).then(() => {
       trackEvent('dashboard_shared');
@@ -1446,7 +1449,7 @@ function handleSharedDashboardRef() {
   try {
     const ref = new URLSearchParams(window.location.search).get('ref');
     if (!ref) return;
-    const data = JSON.parse(decodeURIComponent(escape(atob(ref))));
+    const data = JSON.parse(decodeURIComponent(Array.prototype.map.call(atob(ref), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
     if (data.name) document.getElementById('owner-name').value = data.name;
     if (data.industry) document.getElementById('custom-biz').value = data.industry;
     if (Array.isArray(data.materials)) {
@@ -1477,10 +1480,19 @@ function useQuickPrompt(prompt) {
   try {
     const input = document.getElementById('commandQuestion');
     if (input) input.value = prompt;
+    input?.focus();
     runCommandCenterQuery();
   } catch (e) {
     console.warn('Quick prompt failed:', e);
   }
+}
+
+function renderCommandAnswerShell(extraHtml = '') {
+  return `
+    <div class="command-response-label">Newszoid answer</div>
+    <div class="analyst-text" id="commandTypewriter"></div>
+    ${extraHtml}
+  `;
 }
 
 async function runCommandCenterQuery() {
@@ -1494,8 +1506,13 @@ async function runCommandCenterQuery() {
     return;
   }
 
-  output.innerHTML = renderSkeletonLoader('analyst');
+  output.innerHTML = `
+    <div class="command-response-label">Thinking</div>
+    ${renderSkeletonLoader('analyst')}
+  `;
+  output.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   const context = getCurrentContext();
+  const focusedRateAnswer = buildFocusedRateAnswer(userQuestion, context);
   const prompt = `
 User business: ${context.profile.name}, ${context.profile.city}, ${context.profile.industry}
 Materials tracked: ${context.profile.materials.join(', ')}
@@ -1504,11 +1521,19 @@ Recent news: ${JSON.stringify(context.news.slice(0, 3))}
 
 User question: ${userQuestion}
 
-Answer as a senior Indian business intelligence analyst. Be direct, specific,
-and actionable. Reference actual rates and news from context. Max 150 words.
+Answer only the user's exact question. If they ask for one material rate,
+start with that material's current rate and do not write a broad market overview.
+Be direct, specific, and actionable. Reference actual rates and news from context.
+Max 70 words.
   `;
 
   try {
+    if (focusedRateAnswer) {
+      output.innerHTML = renderCommandAnswerShell();
+      typeWriter(focusedRateAnswer, document.getElementById('commandTypewriter'), 12);
+      return;
+    }
+
     const data = await callAPI('analyst', {
       name: STATE.name,
       businessType: STATE.biz,
@@ -1517,18 +1542,73 @@ and actionable. Reference actual rates and news from context. Max 150 words.
       prompt,
       question: userQuestion
     });
-    const answer = data.analysis || data.answer || buildLocalCommandAnswer(userQuestion);
-    output.innerHTML = '<div class="analyst-text" id="commandTypewriter"></div>';
+    const answer = limitCommandAnswer(data.analysis || data.answer || buildLocalCommandAnswer(userQuestion));
+    output.innerHTML = renderCommandAnswerShell();
     typeWriter(answer, document.getElementById('commandTypewriter'), 12);
   } catch (e) {
     const answer = buildLocalCommandAnswer(userQuestion);
-    output.innerHTML = '<div class="analyst-text" id="commandTypewriter"></div><div class="ai-disclaimer">Live AI is unavailable, so this answer uses your loaded dashboard context.</div>';
+    output.innerHTML = renderCommandAnswerShell('<div class="ai-disclaimer">Live AI is unavailable, so this answer uses your loaded dashboard context.</div>');
     typeWriter(answer, document.getElementById('commandTypewriter'), 12);
   }
 }
 
+function normalizeCommandText(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function isRateQuestion(question) {
+  const q = normalizeCommandText(question);
+  return /\b(rate|rates|price|prices|cost|today|current|now)\b/.test(q);
+}
+
+function findMaterialInQuestion(question, rates) {
+  const q = normalizeCommandText(question);
+  return (rates || []).find(rate => {
+    const material = normalizeCommandText(rate.material || rate.item);
+    if (!material) return false;
+    const words = material.split(' ').filter(word => word.length > 2);
+    return q.includes(material) || words.some(word => q.includes(word));
+  });
+}
+
+function formatRateValue(value) {
+  const rate = Number(value || 0);
+  if (!rate) return 'not available';
+  return `Rs. ${rate.toLocaleString('en-IN')}`;
+}
+
+function buildFocusedRateAnswer(question, context = getCurrentContext()) {
+  if (!isRateQuestion(question)) return null;
+
+  const rate = findMaterialInQuestion(question, context.rates);
+  if (!rate) {
+    const materials = (context.rates || []).map(item => item.material || item.item).filter(Boolean).slice(0, 5);
+    return `I do not have that material loaded in your rate tracker yet. Current tracked items are: ${materials.join(', ') || 'none'}. Add the material or fetch live rates, then ask again for today's rate.`;
+  }
+
+  const material = rate.material || rate.item || 'This material';
+  const currentPrice = rate.rate || rate.currentPrice;
+  const pct = rate.pct !== undefined ? Number(rate.pct) : (rate.deltaPercent !== undefined ? Number(rate.deltaPercent) : 0);
+  const change = Number(rate.change || 0);
+  const trend = (rate.trend || (pct > 0 ? 'up' : pct < 0 ? 'down' : 'flat')).toLowerCase();
+  const direction = trend === 'up' ? 'up' : trend === 'down' ? 'down' : 'flat';
+  const changeText = change ? `, changed by Rs. ${Math.abs(change).toLocaleString('en-IN')}` : '';
+  const cityText = context.profile.city ? ` in ${context.profile.city}` : '';
+
+  return `${material} rate today${cityText}: ${formatRateValue(currentPrice)}. It is ${direction}${changeText} (${Math.abs(pct).toFixed(1)}%). Confirm with 2 local suppliers before placing a large order.`;
+}
+
+function limitCommandAnswer(answer, maxWords = 90) {
+  const words = String(answer || '').trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return String(answer || '').trim();
+  return `${words.slice(0, maxWords).join(' ')}...`;
+}
+
 function buildLocalCommandAnswer(question) {
   const context = getCurrentContext();
+  const focusedRateAnswer = buildFocusedRateAnswer(question, context);
+  if (focusedRateAnswer) return focusedRateAnswer;
+
   const topRate = [...context.rates].sort((a, b) => Math.abs(b.pct || 0) - Math.abs(a.pct || 0))[0];
   const topNews = context.news[0]?.headline || 'No urgent headline is available.';
   return `${STATE.name || 'Your business'} should watch ${topRate?.material || 'tracked materials'} first today. Current movement is ${(topRate?.pct || 0).toFixed(1)}%, so avoid large purchases unless margins are protected. The main signal is: ${topNews}. For ${STATE.city}, check supplier quotes this week and keep one backup vendor ready.`;
@@ -1757,7 +1837,7 @@ function calculateDeltas(previousSnapshot, currentRates, currentNews) {
       const currentRate = Number(current.rate || current.currentPrice || 0);
       const diff = currentRate - Number(prev.rate || 0);
       if (!diff || !prev.rate) return;
-      const pct = ((diff / prev.rate) * 100).toFixed(1);
+      const pct = Number(((diff / prev.rate) * 100).toFixed(1));
       deltas.push({
         type: diff > 0 ? 'rate_up' : 'rate_down',
         icon: diff > 0 ? '▲' : '▼',

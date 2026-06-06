@@ -69,6 +69,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Newszoid">
+  <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="logo-icon.png" type="image/png">
   <link rel="apple-touch-icon" href="logo-icon.png">
   <link href="style.css" rel="stylesheet">
@@ -86,6 +87,7 @@
       <div class="topbar-module">BIZ INTEL</div>
     </div>
     <div class="topbar-right">
+      <a href="about.html">About</a>
       <button class="topbar-btn" onclick="resetToSetup()">Switch Profile</button>
     </div>
   </header>
@@ -344,7 +346,7 @@
         <div class="delta-header">
           <span class="delta-title">3 things changed since your last visit</span>
           <span class="delta-time" id="deltaTime"></span>
-          <button class="delta-dismiss" onclick="dismissDelta()">âœ•</button>
+          <button class="delta-dismiss" onclick="dismissDelta()">&times;</button>
         </div>
         <div class="delta-items" id="deltaItems"></div>
       </div>
@@ -418,21 +420,22 @@
       </div>
 
       <section class="ai-command-center" id="aiCommandCenter">
-        <div class="news-section-title command-title">AI Command Center <span class="sub">What matters today</span></div>
+        <div class="news-section-title command-title">Newszoid Command Center <span class="sub">What matters today</span></div>
         <div class="command-grid">
           <div class="command-main">
             <div class="command-input-row">
               <input type="text" id="commandQuestion" placeholder="Ask anything about your business, rates, or market...">
-              <button class="btn-fetch accent" onclick="runCommandCenterQuery()">Ask AI</button>
+              <button class="btn-fetch accent" onclick="runCommandCenterQuery()">Ask Newszoid</button>
+            </div>
+            <div class="command-response command-response-top" id="commandResponse">
+              <div class="command-response-label">Newszoid answer</div>
+              <div class="empty-desc">Ask a question to get a short, actionable business answer.</div>
             </div>
             <div class="quick-prompts">
               <button onclick="useQuickPrompt('Should I buy steel now or wait?')">Should I buy steel now or wait?</button>
               <button onclick="useQuickPrompt('Any government schemes I qualify for?')">Any government schemes I qualify for?</button>
               <button onclick="useQuickPrompt('What is the biggest risk to my business this week?')">What's the biggest risk to my business this week?</button>
               <button onclick="useQuickPrompt('Are there any tenders in my city?')">Are there any tenders in my city?</button>
-            </div>
-            <div class="command-response" id="commandResponse">
-              <div class="empty-desc">Ask a question to get a short, actionable business answer.</div>
             </div>
           </div>
           <div class="opportunity-panel">
@@ -463,7 +466,7 @@
 
     <div class="dash-footer">
       <strong><span>Newszoid</span> Business Intelligence</strong> — The Future of Newspapers, Now. &nbsp;|&nbsp;
-      Powered by AI &nbsp;|&nbsp; <a href="https://www.newszoid.com" style="color:#666;">newszoid.com</a>
+      Powered by AI &nbsp;|&nbsp; <a href="about.html">About</a> &nbsp;|&nbsp; <a href="https://www.newszoid.com" style="color:#666;">newszoid.com</a>
     </div>
   </div>
 
@@ -527,7 +530,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h3>WhatsApp Alerts</h3>
-        <button class="close-modal" onclick="closeWhatsAppModal()">âœ•</button>
+        <button class="close-modal" onclick="closeWhatsAppModal()">x</button>
       </div>
       <div class="modal-body">
         <div class="modal-step-label">Step 1</div>
@@ -553,7 +556,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/service-worker.js')
           .then(() => console.log('Newszoid SW registered'))
           .catch(err => console.warn('SW failed:', err));
       });

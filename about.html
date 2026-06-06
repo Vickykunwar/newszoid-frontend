@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Newszoid — Business Intelligence for Indian Businesses</title>
+<meta name="description" content="Newszoid is India's AI-powered Business Intelligence platform delivering hyper-personalized news, live material rates, price alerts, and AI analyst insights to 63M+ Indian MSMEs.">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="logo-icon.png" type="image/png">
+<link rel="canonical" href="https://www.newszoid.com/about">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0A0A0A;--dark:#111111;--card:#161616;--border:#242424;--border2:#2E2E2E;--orange:#FF4E1A;--orange2:#FF7A45;--orange-glow:rgba(255,78,26,0.12);--text:#F0EDE8;--text2:#9A9690;--text3:#5A5652;--serif:'Playfair Display',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.7;overflow-x:hidden}
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+.nav-logo img{width:28px;height:28px;border-radius:6px}
+.nav-logo-name{font-family:var(--serif);font-size:18px;font-weight:700;letter-spacing:-0.02em}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{color:var(--text2);font-size:13px;text-decoration:none;font-weight:400;transition:color 0.2s}
+.nav-links a:hover,.nav-links a.active{color:var(--text)}
+.nav-cta{background:var(--orange);color:#fff;padding:8px 20px;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none;transition:background 0.2s}
+.nav-cta:hover{background:var(--orange2);color:#fff}
+.hero{position:relative;padding:100px 40px 80px;max-width:1100px;margin:0 auto;overflow:hidden}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--orange);letter-spacing:0.1em;text-transform:uppercase;border:0.5px solid rgba(255,78,26,0.3);padding:5px 12px;border-radius:100px;margin-bottom:28px}
+.hero-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--orange);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+.hero h1{font-family:var(--serif);font-size:clamp(42px,6vw,80px);font-weight:900;line-height:1.05;letter-spacing:-0.03em;color:var(--text);max-width:800px;margin-bottom:28px}
+.hero h1 em{font-style:italic;color:var(--orange)}
+.hero-sub{font-size:clamp(16px,2vw,19px);color:var(--text2);max-width:580px;line-height:1.65;margin-bottom:48px;font-weight:300}
+.hero-stats{display:flex;gap:48px;flex-wrap:wrap}
+.hero-stat-num{font-family:var(--serif);font-size:36px;font-weight:700;color:var(--orange);line-height:1;margin-bottom:4px}
+.hero-stat-label{font-size:13px;color:var(--text2);font-weight:400}
+.hero-bg-grid{position:absolute;top:0;right:-100px;bottom:0;width:50%;opacity:0.035;background-image:linear-gradient(var(--orange) 1px,transparent 1px),linear-gradient(90deg,var(--orange) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+.section-divider{height:0.5px;background:var(--border);max-width:1100px;margin:0 auto}
+.section{max-width:1100px;margin:0 auto;padding:80px 40px}
+.section-label{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:16px}
+.section-title{font-family:var(--serif);font-size:clamp(28px,4vw,44px);font-weight:700;line-height:1.1;letter-spacing:-0.025em;margin-bottom:20px;color:var(--text)}
+.section-title em{font-style:italic;color:var(--orange)}
+.section-body{font-size:17px;color:var(--text2);max-width:600px;line-height:1.75;font-weight:300}
+.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:48px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden}
+.problem-card{background:var(--card);padding:32px;position:relative;overflow:hidden}
+.problem-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--border2)}
+.problem-card.active::before{background:var(--orange)}
+.problem-num{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:0.1em;margin-bottom:14px}
+.problem-title{font-size:16px;font-weight:500;margin-bottom:10px;color:var(--text)}
+.problem-body{font-size:14px;color:var(--text2);line-height:1.65}
+.problem-stat{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--orange);background:var(--orange-glow);padding:5px 10px;border-radius:4px;display:inline-block}
+.features-layout{display:grid;grid-template-columns:340px 1fr;gap:60px;align-items:start;margin-top:56px}
+.features-sticky{position:sticky;top:90px}
+.features-intro{font-size:15px;color:var(--text2);line-height:1.75;margin-top:16px}
+.features-list{display:flex;flex-direction:column;gap:3px}
+.feature-item{border:0.5px solid var(--border);border-radius:10px;padding:28px;background:var(--card);position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s}
+.feature-item:hover{border-color:var(--border2);background:#1A1A1A}
+.feature-icon{font-size:28px;margin-bottom:14px;display:block}
+.feature-name{font-size:18px;font-weight:500;color:var(--text);margin-bottom:8px;letter-spacing:-0.01em}
+.feature-desc{font-size:14px;color:var(--text2);line-height:1.7}
+.feature-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.ftag{font-family:var(--mono);font-size:10px;font-weight:500;padding:3px 8px;border-radius:4px;background:rgba(255,255,255,0.04);color:var(--text3);border:0.5px solid var(--border)}
+.how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:48px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden}
+.how-step{background:var(--card);padding:36px 28px;position:relative}
+.step-num{font-family:var(--serif);font-size:56px;font-weight:900;color:var(--border2);line-height:1;margin-bottom:20px;letter-spacing:-0.04em}
+.step-title{font-size:17px;font-weight:500;color:var(--text);margin-bottom:10px}
+.step-body{font-size:13px;color:var(--text2);line-height:1.7}
+.step-time{margin-top:16px;font-family:var(--mono);font-size:11px;color:var(--orange2);display:flex;align-items:center;gap:5px}
+.step-time::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.industries-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:48px;border:0.5px solid var(--border);border-radius:12px;overflow:hidden}
+.industry-card{background:var(--card);padding:24px 20px;text-align:center;cursor:default;transition:background 0.2s}
+.industry-card:hover{background:#1C1C1C}
+.industry-emoji{font-size:24px;display:block;margin-bottom:8px}
+.industry-name{font-size:12px;font-weight:500;color:var(--text);line-height:1.3}
+.industry-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.market-layout{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:56px}
+.market-numbers{display:flex;flex-direction:column;gap:28px}
+.market-num-row{padding-bottom:28px;border-bottom:0.5px solid var(--border)}
+.market-num-row:last-child{border-bottom:none;padding-bottom:0}
+.market-big{font-family:var(--serif);font-size:48px;font-weight:900;color:var(--text);line-height:1;letter-spacing:-0.03em}
+.market-big span{color:var(--orange)}
+.market-desc{font-size:14px;color:var(--text2);margin-top:6px;line-height:1.6}
+.market-src{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:4px}
+.market-quote{padding:24px;border-left:2px solid var(--orange);background:var(--orange-glow);border-radius:0 8px 8px 0;font-size:15px;color:var(--text);font-style:italic;line-height:1.7;margin-top:24px}
+.market-quote-src{font-size:12px;color:var(--text3);margin-top:8px;font-style:normal;font-family:var(--mono)}
+.mission-block{text-align:center;max-width:780px;margin:0 auto;padding:80px 40px}
+.mission-divider{width:40px;height:2px;background:var(--orange);margin:24px auto;border-radius:2px}
+.values-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+.value-card{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:28px}
+.value-icon{font-size:24px;margin-bottom:14px;display:block}
+.value-name{font-size:15px;font-weight:500;color:var(--text);margin-bottom:8px}
+.value-desc{font-size:13px;color:var(--text2);line-height:1.65}
+.cta-band{background:var(--dark);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border);text-align:center;padding:80px 40px}
+.cta-band h2{font-family:var(--serif);font-size:clamp(28px,4vw,48px);font-weight:700;letter-spacing:-0.025em;margin-bottom:16px;color:var(--text)}
+.cta-band h2 em{color:var(--orange);font-style:italic}
+.cta-band p{font-size:16px;color:var(--text2);margin-bottom:36px}
+.cta-buttons{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:var(--orange);color:#fff;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:500;text-decoration:none;transition:background 0.2s}
+.btn-primary:hover{background:var(--orange2)}
+.btn-secondary{border:0.5px solid var(--border2);color:var(--text2);padding:14px 32px;border-radius:8px;font-size:15px;font-weight:400;text-decoration:none;transition:border-color 0.2s,color 0.2s}
+.btn-secondary:hover{border-color:var(--text3);color:var(--text)}
+footer{border-top:0.5px solid var(--border);padding:48px 40px;max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.footer-brand{font-family:var(--serif);font-size:16px;color:var(--text2)}
+.footer-links{display:flex;gap:28px;flex-wrap:wrap}
+.footer-links a{font-size:13px;color:var(--text3);text-decoration:none;transition:color 0.2s}
+.footer-links a:hover{color:var(--text2)}
+.footer-copy{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.fade-up{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+@media(max-width:680px){
+  nav{padding:12px 16px}
+  .nav-cta{padding:8px 14px}
+  .hero{padding:42px 16px 36px}
+  .hero h1{font-size:clamp(36px,12vw,54px);margin-bottom:18px}
+  .hero-sub{font-size:15px;margin-bottom:28px}
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .hero-stats>div{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:16px}
+  .hero-stat-num{font-size:28px}
+  .section{padding:48px 16px}
+  .section-title{font-size:clamp(26px,9vw,38px)}
+  .section-body{font-size:15px}
+  .problem-grid,.features-layout,.how-steps,.industries-grid,.market-layout,.values-grid{margin-top:30px}
+  .problem-card,.feature-item,.how-step,.value-card{padding:22px}
+  .features-list{gap:10px}
+  .feature-tags{gap:8px}
+  .ftag{font-size:9px}
+  .industries-grid{grid-template-columns:1fr 1fr}
+  .industry-card{padding:18px 12px}
+  .market-big{font-size:36px}
+  .mission-block,.cta-band{padding:48px 16px}
+  .cta-buttons{display:grid;grid-template-columns:1fr}
+  .btn-primary,.btn-secondary{display:block;text-align:center;padding:13px 18px}
+  footer{padding:32px 16px;align-items:flex-start}
+}
+@media(max-width:900px){
+  nav{padding:14px 20px}
+  .nav-links{display:none}
+  .hero{padding:60px 20px 50px}
+  .section{padding:60px 20px}
+  .problem-grid{grid-template-columns:1fr}
+  .features-layout{grid-template-columns:1fr;gap:36px}
+  .features-sticky{position:static}
+  .how-steps{grid-template-columns:1fr}
+  .industries-grid{grid-template-columns:repeat(2,1fr)}
+  .market-layout{grid-template-columns:1fr}
+  .values-grid{grid-template-columns:1fr}
+  .hero-stats{gap:28px}
+  footer{flex-direction:column;gap:12px}
+  .cta-band,.mission-block{padding:60px 20px}
+}
+@media(max-width:680px){
+  nav{padding:12px 16px}
+  .hero{padding:42px 16px 36px}
+  .section{padding:48px 16px}
+  .cta-band,.mission-block{padding:48px 16px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="logo-icon.png" alt="Newszoid logo">
+    <span class="nav-logo-name">Newszoid</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Dashboard</a>
+    <a href="about.html" class="active">About</a>
+    <a href="index.html">Pricing</a>
+  </div>
+  <a href="index.html" class="nav-cta">Try Free &rarr;</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-eyebrow">About Newszoid</div>
+  <h1>The <em>intelligence layer</em><br>Indian businesses never had</h1>
+  <p class="hero-sub">63 million Indian MSMEs make critical procurement decisions every day &mdash; without real-time rates, personalized news, or AI guidance. Newszoid changes that.</p>
+  <div class="hero-stats">
+    <div><div class="hero-stat-num">63M+</div><div class="hero-stat-label">MSMEs in India</div></div>
+    <div><div class="hero-stat-num">42%</div><div class="hero-stat-label">cite material costs as #1 pain</div></div>
+    <div><div class="hero-stat-num">&#8377;1.83B</div><div class="hero-stat-label">India BI market size (2024)</div></div>
+    <div><div class="hero-stat-num">35%</div><div class="hero-stat-label">SME BI penetration &mdash; huge gap</div></div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-up">
+  <div class="section-label">The Problem</div>
+  <h2 class="section-title">Indian businesses are making<br><em>expensive decisions blind</em></h2>
+  <p class="section-body">Every morning, a business owner in Haridwar, Surat, or Ludhiana opens the same generic newspaper, checks the same overcrowded WhatsApp groups, and calls their supplier &mdash; hoping to get a fair price. This is how lakhs of crores in raw material purchases happen every day in India. Manually. Blindly. Without intelligence.</p>
+  <div class="problem-grid">
+    <div class="problem-card active">
+      <div class="problem-num">01 / 04</div>
+      <div class="problem-title">No personalized business news</div>
+      <div class="problem-body">National newspapers cover Sensex and policy. They don't tell a plastic moulder in Ahmedabad that HDPE imports from China just dropped 8%, or a textile trader in Surat that cotton futures are signaling a 3-week high. Generic news misses the signals that actually matter.</div>
+      <div class="problem-stat">Generic news = missed signals</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">02 / 04</div>
+      <div class="problem-title">Live material rates are scattered and unreliable</div>
+      <div class="problem-body">Prices for MS Sheet, copper, HDPE, diesel, and cement change daily. There is no single, reliable, free source that shows an Indian fabricator today's rate in their city &mdash; with yesterday's comparison, trend direction, and a 30-day history chart.</div>
+      <div class="problem-stat">42% cite material costs as #1 concern</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">03 / 04</div>
+      <div class="problem-title">Government schemes go undiscovered</div>
+      <div class="problem-body">India has hundreds of active MSME schemes, credit guarantees, subsidies, and tenders at any given time. Most business owners never discover them &mdash; not because they don't qualify, but because no single platform aggregates and personalizes these opportunities.</div>
+      <div class="problem-stat">Crores in MSME schemes go unclaimed</div>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">04 / 04</div>
+      <div class="problem-title">No AI analyst in your corner</div>
+      <div class="problem-body">Large corporates have research teams, Bloomberg terminals, and market analysts. An MSME owner in Tier 2 India has none of this &mdash; making procurement decisions worth lakhs on intuition and supplier calls alone.</div>
+      <div class="problem-stat">SME BI penetration: only 35%</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-up">
+  <div class="features-layout">
+    <div class="features-sticky">
+      <div class="section-label">What Newszoid Does</div>
+      <h2 class="section-title">Your personal AI<br><em>business analyst</em></h2>
+      <p class="features-intro">Newszoid is not a news app. It is a Business Intelligence Agent &mdash; a 3-minute setup that learns your industry, your city, and your materials, then delivers actionable intelligence every single day.</p>
+    </div>
+    <div class="features-list">
+      <div class="feature-item">
+        <span class="feature-icon">&#128240;</span>
+        <div class="feature-name">Hyper-Personalized Business News</div>
+        <div class="feature-desc">Instead of scanning 20 irrelevant articles, Newszoid surfaces only the stories that affect your business. Policy changes, trade alerts, import/export news, regional market signals &mdash; all filtered by your industry and your city. Each story is scored for relevance. No noise, only signal.</div>
+        <div class="feature-tags"><span class="ftag">Industry-filtered</span><span class="ftag">City-specific</span><span class="ftag">Relevance scoring</span><span class="ftag">Policy alerts</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#128202;</span>
+        <div class="feature-name">Live Material Rate Tracker</div>
+        <div class="feature-desc">Track the exact raw materials your business buys and sells. Newszoid pulls daily market rates and shows today's price vs yesterday &mdash; with directional arrows, percentage movement, and a 30-day sparkline chart. Set price alerts at any threshold: get notified the moment MS Sheet crosses &#8377;59,000 or diesel moves more than 3%.</div>
+        <div class="feature-tags"><span class="ftag">Daily rate fetch</span><span class="ftag">% change + trend</span><span class="ftag">30-day history</span><span class="ftag">Custom alerts</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#129504;</span>
+        <div class="feature-name">AI Analyst Insights</div>
+        <div class="feature-desc">Every morning, Newszoid's AI synthesizes your rate movements, industry news, and global signals into a 200-word actionable brief. "Lock steel purchases this week. New Uttarakhand tender aligns with your profile. Diesel stable &mdash; hold." Plain-language intelligence that would cost a junior analyst &#8377;30,000/month &mdash; free for every business.</div>
+        <div class="feature-tags"><span class="ftag">Morning brief</span><span class="ftag">Risk signals</span><span class="ftag">Action points</span><span class="ftag">Weekly digest</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#128276;</span>
+        <div class="feature-name">WhatsApp &amp; Real-Time Alerts</div>
+        <div class="feature-desc">Indian business owners live on WhatsApp &mdash; not SaaS dashboards. Newszoid delivers your daily intelligence brief directly to WhatsApp at 7 AM, with instant price spike alerts when your tracked materials move beyond your set threshold. Get the right information before your first supplier call of the day.</div>
+        <div class="feature-tags"><span class="ftag">7 AM WhatsApp brief</span><span class="ftag">Instant spike alerts</span><span class="ftag">Weekly PDF report</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#127963;</span>
+        <div class="feature-name">Government Schemes &amp; Tender Discovery</div>
+        <div class="feature-desc">Newszoid automatically scans active MSME schemes, credit subsidies, startup programs, and government tenders &mdash; and surfaces only the ones relevant to your business profile, city, and industry. Never miss an opportunity because you didn't know it existed.</div>
+        <div class="feature-tags"><span class="ftag">MSME schemes</span><span class="ftag">GST circulars</span><span class="ftag">Tender alerts</span><span class="ftag">GeM opportunities</span></div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon">&#128172;</span>
+        <div class="feature-name">AI Business Command Center</div>
+        <div class="feature-desc">Ask anything about your business in plain language. "Should I buy copper now or wait 2 weeks?" "Are there infrastructure tenders in Delhi for fabrication?" "What is the biggest risk to my margins this month?" Newszoid's AI answers using live rates, current news, and your business profile &mdash; not generic knowledge.</div>
+        <div class="feature-tags"><span class="ftag">Natural language Q&amp;A</span><span class="ftag">Context-aware</span><span class="ftag">Live data grounded</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-up">
+  <div class="section-label">How It Works</div>
+  <h2 class="section-title">Up and running in<br><em>3 minutes flat</em></h2>
+  <div class="how-steps">
+    <div class="how-step">
+      <div class="step-num">01</div>
+      <div class="step-title">Tell us about your business</div>
+      <div class="step-body">Enter your business name, city, and email. No GSTIN. No signup friction. No credit card. Just 3 fields that personalize your entire intelligence experience from day one.</div>
+      <div class="step-time">Takes 30 seconds</div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">02</div>
+      <div class="step-title">Select your industry &amp; materials</div>
+      <div class="step-body">Choose from 10+ industries &mdash; Iron, Textiles, Pharma, Plastics, Auto, Construction and more. Then add the exact raw materials you track: MS Sheet, HDPE, Cotton Yarn, Diesel, Copper Wire.</div>
+      <div class="step-time">Takes 60 seconds</div>
+    </div>
+    <div class="how-step">
+      <div class="step-num">03</div>
+      <div class="step-title">Your dashboard goes live</div>
+      <div class="step-body">Immediately: personalized news feed, live material rates with trend arrows, AI market summary, and your first opportunity scan. No tutorial. No setup wizard. Just intelligence, instantly.</div>
+      <div class="step-time">Instant. Every day after that: automatic.</div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-up">
+  <div class="section-label">Industries Served</div>
+  <h2 class="section-title">Built for India's<br><em>real economy</em></h2>
+  <p class="section-body">Purpose-built for the manufacturing, trading, and processing businesses that form the backbone of India's economy &mdash; industries where raw material prices and policy changes directly determine profitability.</p>
+  <div class="industries-grid">
+    <div class="industry-card"><span class="industry-emoji">&#128297;</span><div class="industry-name">Iron &amp; Sheet Metal</div><div class="industry-sub">Fabrication, roofing, structures</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#127981;</span><div class="industry-name">Plastic Moulding</div><div class="industry-sub">Injection, blow, thermoforming</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#129525;</span><div class="industry-name">Textile &amp; Garments</div><div class="industry-sub">Fabric, yarn, apparel</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#129514;</span><div class="industry-name">Chemical &amp; Pharma</div><div class="industry-sub">Bulk chemicals, APIs</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#127959;</span><div class="industry-name">Construction</div><div class="industry-sub">Cement, rebar, aggregates</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#128295;</span><div class="industry-name">Automotive Parts</div><div class="industry-sub">OEM, aftermarket</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#127806;</span><div class="industry-name">Food Processing</div><div class="industry-sub">Grains, oils, FMCG inputs</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#9889;</span><div class="industry-name">Electronics</div><div class="industry-sub">Components, PCB</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#129395;</span><div class="industry-name">Wood &amp; Furniture</div><div class="industry-sub">Timber, plywood, hardware</div></div>
+    <div class="industry-card"><span class="industry-emoji">&#11093;</span><div class="industry-name">Rubber &amp; Tyres</div><div class="industry-sub">Natural rubber, compounds</div></div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-up">
+  <div class="market-layout">
+    <div class="market-numbers">
+      <div class="market-num-row">
+        <div class="market-big">63<span>M+</span></div>
+        <div class="market-desc">Registered MSMEs in India as of 2026, contributing over 30% to India's GDP and representing the largest underserved market for business intelligence tools globally.</div>
+        <div class="market-src">Source: IBEF / Ministry of MSME, Feb 2026</div>
+      </div>
+      <div class="market-num-row">
+        <div class="market-big"><span>&#8377;</span>1.83B</div>
+        <div class="market-desc">India's business information market size in 2024, projected to reach &#8377;3.26B by 2033 at 6% CAGR. The SME segment is the fastest-growing, most underserved subsector.</div>
+        <div class="market-src">Source: IMARC Group, 2024</div>
+      </div>
+      <div class="market-num-row">
+        <div class="market-big">42<span>%</span></div>
+        <div class="market-desc">Of Indian MSME owners cite material costs as their single biggest business concern &mdash; for the 3rd consecutive year. This is the exact problem Newszoid is built to solve.</div>
+        <div class="market-src">Source: CPA Australia Asia-Pacific SMB Survey, 2025</div>
+      </div>
+    </div>
+    <div class="market-text">
+      <div class="section-label">The Opportunity</div>
+      <h2 class="section-title">The largest<br><em>untapped market</em><br>in Indian tech</h2>
+      <p class="section-body">India's 63 million MSMEs are the engine of the economy &mdash; but they operate with near-zero access to professional business intelligence. Bloomberg terminals serve large corporates. Expensive consultants serve mid-sized firms. Nobody serves the millions of fabricators, traders, and manufacturers in Tier 2 and Tier 3 India.</p>
+      <p class="section-body" style="margin-top:16px">56% of Indian business owners are now under 40 &mdash; digital natives who want mobile-first, WhatsApp-native tools that give them a real edge. Newszoid is built for this generation.</p>
+      <blockquote class="market-quote">"Indian small businesses recorded their strongest post-pandemic growth in 2025, driven by digital adoption and rising AI investments &mdash; while material costs remained the #1 pressure for the third straight year."<div class="market-quote-src">&mdash; CPA Australia Asia-Pacific Small Business Survey, May 2025</div></blockquote>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="mission-block fade-up">
+  <div class="section-label" style="text-align:center">Our Mission</div>
+  <div class="mission-divider"></div>
+  <h2 class="section-title" style="font-size:clamp(32px,5vw,56px);margin-bottom:24px">Democratize business intelligence<br>for every <em>Indian entrepreneur</em></h2>
+  <p class="section-body" style="max-width:100%;font-size:18px;text-align:center;margin:0 auto">Every business owner &mdash; whether they run a &#8377;10 lakh fabrication shop in Haridwar or a &#8377;10 crore plastic moulding unit in Ahmedabad &mdash; deserves the same quality of market intelligence that Fortune 500 companies pay millions for. Newszoid delivers that intelligence, personalized, in plain language, every single morning.</p>
+</section>
+
+<div class="section-divider"></div>
+
+<section class="section fade-up">
+  <div class="section-label">Our Principles</div>
+  <h2 class="section-title">How we think about<br><em>building Newszoid</em></h2>
+  <div class="values-grid">
+    <div class="value-card"><span class="value-icon">&#127919;</span><div class="value-name">Actionable over informational</div><div class="value-desc">We don't just show you what happened. We tell you what to do about it. Every AI output ends with a clear, specific, time-bound action recommendation.</div></div>
+    <div class="value-card"><span class="value-icon">&#127758;</span><div class="value-name">Regional context first</div><div class="value-desc">Steel prices in Haridwar are different from Ludhiana. Cotton news matters more in Surat than in Bengaluru. Intelligence must be local to be genuinely useful.</div></div>
+    <div class="value-card"><span class="value-icon">&#9889;</span><div class="value-name">Speed over polish</div><div class="value-desc">A business owner making a &#8377;50 lakh procurement decision needs the right answer in 30 seconds &mdash; not a beautifully formatted 10-page report they'll never read.</div></div>
+    <div class="value-card"><span class="value-icon">&#128275;</span><div class="value-name">No gatekeeping</div><div class="value-desc">The free tier is genuinely useful. Business intelligence should not be a privilege reserved for those who can afford Bloomberg. Every Indian business gets a real tool.</div></div>
+    <div class="value-card"><span class="value-icon">&#128242;</span><div class="value-name">WhatsApp-native</div><div class="value-desc">Indian business owners live on WhatsApp, not SaaS dashboards. We meet users where they already are &mdash; not where a Silicon Valley product manager thinks they should be.</div></div>
+    <div class="value-card"><span class="value-icon">&#129309;</span><div class="value-name">Transparent AI</div><div class="value-desc">We show you what data the AI used, where rates came from, and how confident the analysis is. Business decisions are too important for black-box answers.</div></div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<div class="cta-band fade-up">
+  <h2>The future of <em>Indian business news</em><br>is personalized. It's here.</h2>
+  <p>Set up your free dashboard in 3 minutes. No signup required to preview.</p>
+  <div class="cta-buttons">
+    <a href="index.html" class="btn-primary">Launch My Dashboard &rarr;</a>
+    <a href="index.html" class="btn-secondary">Try Demo First</a>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-brand">Newszoid Business Intelligence</div>
+  <div class="footer-links">
+    <a href="index.html">Dashboard</a>
+    <a href="about.html">About</a>
+    <a href="mailto:hello@newszoid.com">Contact</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+  <div class="footer-copy">&copy; 2025 Newszoid &middot; newszoid.com</div>
+</footer>
+
+<script>
+const obs = new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target)}})},{threshold:0.1});
+document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

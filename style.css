@@ -1249,6 +1249,196 @@ body {
   color: var(--color-text-muted);
 }
 
+/* ─── News Item Enhanced ─── */
+.news-relevance {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-glow);
+  border: 1px solid rgba(255, 74, 31, 0.25);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-accent-primary);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.news-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.news-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.news-action-btn:hover {
+  border-color: var(--color-accent-primary);
+  color: var(--color-text-primary);
+  background: var(--color-accent-glow);
+}
+
+.news-action-btn.dismiss-btn:hover {
+  border-color: var(--color-negative);
+  color: var(--color-negative);
+  background: var(--color-negative-bg);
+}
+
+.news-action-btn svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.news-item.dismissed {
+  opacity: 0;
+  max-height: 0;
+  padding: 0;
+  margin: 0;
+  border: none;
+  overflow: hidden;
+  transition: all 0.3s ease-out;
+}
+
+/* ─── AI Streaming UX ─── */
+.ai-steps-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.ai-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  transition: color 0.3s;
+}
+
+.ai-step.active {
+  color: var(--color-accent-primary);
+}
+
+.ai-step.done {
+  color: var(--color-positive);
+}
+
+.ai-step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+
+.ai-step.active .ai-step-dot {
+  background: var(--color-accent-primary);
+  animation: pulse 1.5s infinite;
+}
+
+.ai-step.done .ai-step-dot {
+  background: var(--color-positive);
+}
+
+.ai-typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--color-accent-primary);
+  margin-left: 2px;
+  animation: blink 0.7s infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ai-response-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.ai-confidence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.ai-confidence-pill.high {
+  background: var(--color-positive-bg);
+  color: var(--color-positive);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.ai-confidence-pill.medium {
+  background: var(--color-gold-bg);
+  color: var(--color-gold);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+}
+
+.ai-confidence-pill.low {
+  background: var(--color-negative-bg);
+  color: var(--color-negative);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.ai-sources-used {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.ai-source-tag {
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  font-size: 0.65rem;
+  color: var(--color-text-secondary);
+}
+
+.ai-disclaimer-line {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+  margin-top: var(--space-2);
+}
+
 /* ─── AI Recommendations Card ─── */
 .ai-rec-card {
   background: linear-gradient(180deg, var(--color-bg-surface) 0%, var(--color-accent-glow) 100%);

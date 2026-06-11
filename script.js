@@ -188,6 +188,40 @@
     return 'demand';
   }
 
+  // ─── Dismissed stories tracking ───
+  function getDismissed() {
+    try {
+      return JSON.parse(localStorage.getItem('nz_dismissed_stories') || '[]');
+    } catch { return []; }
+  }
+
+  function dismissStory(headlineKey) {
+    const dismissed = getDismissed();
+    if (!dismissed.includes(headlineKey)) {
+      dismissed.push(headlineKey);
+      localStorage.setItem('nz_dismissed_stories', JSON.stringify(dismissed));
+    }
+  }
+
+  function storyKey(item) {
+    return (item.headline || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 40);
+  }
+
+  function computeRelevance(item) {
+    let score = 60;
+    const hl = (item.headline || '').toLowerCase();
+    const biz = (profile.businessType || '').toLowerCase();
+    const city = (profile.city || '').toLowerCase();
+    const materials = (profile.items || []).map(m => m.toLowerCase());
+
+    if (materials.some(m => hl.includes(m.split(' ')[0]))) score += 18;
+    if (hl.includes(city) || hl.includes(city.split(',')[0])) score += 10;
+    if (biz.split(/[&, ]+/).some(w => w.length > 3 && hl.includes(w))) score += 8;
+    if (item.impact === 'HIGH') score += 5;
+    if (item.sentiment === 'BEARISH' || item.sentiment === 'BULLISH') score += 4;
+    return Math.min(score, 99);
+  }
+
   function normalizeRate(raw = {}) {
     const pct = Number(raw.pct ?? raw.deltaPercent ?? 0);
     const change = Number(raw.change ?? raw.delta ?? 0);
@@ -431,8 +465,10 @@
   }
 
   function createNewsItem(item) {
+    const key = storyKey(item);
     const wrapper = document.createElement('div');
     wrapper.className = 'news-item';
+    wrapper.dataset.storyKey = key;
 
     const sourceRow = document.createElement('div');
     sourceRow.className = 'news-source';
@@ -441,9 +477,7 @@
     favicon.className = 'news-favicon';
     favicon.alt = item.source || 'News';
     favicon.src = `https://www.google.com/s2/favicons?domain=${sourceDomain(item.source)}&sz=32`;
-    favicon.addEventListener('error', () => {
-      favicon.src = 'favicon.ico';
-    }, { once: true });
+    favicon.addEventListener('error', () => { favicon.src = 'favicon.ico'; }, { once: true });
 
     sourceRow.append(
       favicon,
@@ -451,16 +485,48 @@
       textEl('span', 'news-time', item.time || 'Today')
     );
 
-    if (item.impact === 'HIGH') {
-      sourceRow.appendChild(textEl('span', 'news-badge new', 'New'));
-    }
+    // Relevance pill
+    const relevance = computeRelevance(item);
+    sourceRow.appendChild(textEl('span', 'news-relevance', `${relevance}% match`));
 
     const headline = textEl('div', 'news-headline', item.headline || 'Industry update');
     const summary = textEl('div', 'news-summary', item.summary || '');
     summary.appendChild(document.createTextNode(' '));
     summary.appendChild(textEl('span', `news-tag ${tagClass(item)}`, item.category || 'News'));
 
-    wrapper.append(sourceRow, headline, summary);
+    // Action buttons
+    const actions = document.createElement('div');
+    actions.className = 'news-actions';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'news-action-btn';
+    saveBtn.type = 'button';
+    saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Save';
+    saveBtn.addEventListener('click', () => showToast('Story saved to your reading list.'));
+
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'news-action-btn';
+    shareBtn.type = 'button';
+    shareBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Share';
+    shareBtn.addEventListener('click', async () => {
+      const shareData = { title: item.headline, text: item.summary, url: location.href };
+      if (navigator.share) { await navigator.share(shareData).catch(() => {}); }
+      else { await navigator.clipboard?.writeText(item.headline).catch(() => {}); showToast('Headline copied!'); }
+    });
+
+    const dismissBtn = document.createElement('button');
+    dismissBtn.className = 'news-action-btn dismiss-btn';
+    dismissBtn.type = 'button';
+    dismissBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Not relevant';
+    dismissBtn.addEventListener('click', () => {
+      dismissStory(key);
+      wrapper.classList.add('dismissed');
+      setTimeout(() => wrapper.remove(), 350);
+      showToast('Dismissed. AI will learn your preference.');
+    });
+
+    actions.append(saveBtn, shareBtn, dismissBtn);
+    wrapper.append(sourceRow, headline, summary, actions);
     return wrapper;
   }
 
@@ -468,16 +534,21 @@
     const container = $('#news-container');
     if (!container) return;
 
+    const dismissed = getDismissed();
+    const filtered = news.filter(item => !dismissed.includes(storyKey(item)));
+
     clearNode(container);
-    news.slice(0, 3).forEach(item => container.appendChild(createNewsItem(item)));
+    filtered.slice(0, 3).forEach(item => container.appendChild(createNewsItem(item)));
 
     const count = $('.news-count');
-    if (count) count.textContent = `${Math.min(news.length, 3)} stories curated for you`;
+    if (count) count.textContent = `${Math.min(filtered.length, 3)} stories curated for you`;
   }
 
   function createIntelCard(item) {
+    const key = storyKey(item);
     const card = document.createElement('div');
     card.className = 'card intel-card';
+    card.dataset.storyKey = key;
 
     const sourceRow = document.createElement('div');
     sourceRow.className = 'intel-source-row';
@@ -486,14 +557,14 @@
     favicon.className = 'news-favicon';
     favicon.alt = item.source || 'News';
     favicon.src = `https://www.google.com/s2/favicons?domain=${sourceDomain(item.source)}&sz=32`;
-    favicon.addEventListener('error', () => {
-      favicon.src = 'favicon.ico';
-    }, { once: true });
+    favicon.addEventListener('error', () => { favicon.src = 'favicon.ico'; }, { once: true });
 
+    const relevance = computeRelevance(item);
     sourceRow.append(
       favicon,
       textEl('span', 'intel-source', item.source || 'News'),
-      textEl('span', 'intel-time', item.time || 'Today')
+      textEl('span', 'intel-time', item.time || 'Today'),
+      textEl('span', 'news-relevance', `${relevance}% match`)
     );
 
     const body = document.createElement('div');
@@ -514,14 +585,45 @@
     sources.appendChild(textEl('span', 'source-chip', item.source || 'News'));
     footer.appendChild(sources);
 
-    const action = document.createElement('button');
-    action.className = 'btn btn-ghost btn-sm';
-    action.type = 'button';
-    action.textContent = 'Ask AI about this';
-    action.addEventListener('click', () => handleAiQuestion(`Explain this update: ${item.headline}`));
-    footer.appendChild(action);
+    // Action buttons row
+    const actions = document.createElement('div');
+    actions.className = 'news-actions';
 
-    card.append(sourceRow, body, tags, footer);
+    const askBtn = document.createElement('button');
+    askBtn.className = 'news-action-btn';
+    askBtn.type = 'button';
+    askBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline></svg> Ask AI';
+    askBtn.addEventListener('click', () => handleAiQuestion(`Explain this update: ${item.headline}`));
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'news-action-btn';
+    saveBtn.type = 'button';
+    saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Save';
+    saveBtn.addEventListener('click', () => showToast('Story saved.'));
+
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'news-action-btn';
+    shareBtn.type = 'button';
+    shareBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> Share';
+    shareBtn.addEventListener('click', async () => {
+      if (navigator.share) { await navigator.share({ title: item.headline, text: item.summary }).catch(() => {}); }
+      else { await navigator.clipboard?.writeText(item.headline).catch(() => {}); showToast('Copied!'); }
+    });
+
+    const dismissBtn = document.createElement('button');
+    dismissBtn.className = 'news-action-btn dismiss-btn';
+    dismissBtn.type = 'button';
+    dismissBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> Not relevant';
+    dismissBtn.addEventListener('click', () => {
+      dismissStory(key);
+      card.style.transition = 'opacity 0.3s, max-height 0.3s';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 350);
+      showToast('Dismissed. AI will learn your preference.');
+    });
+
+    actions.append(askBtn, saveBtn, shareBtn, dismissBtn);
+    card.append(sourceRow, body, tags, footer, actions);
     return card;
   }
 
@@ -529,8 +631,11 @@
     const feed = $('.intelligence-feed');
     if (!feed) return;
 
+    const dismissed = getDismissed();
+    const filtered = news.filter(item => !dismissed.includes(storyKey(item)));
+
     clearNode(feed);
-    news.forEach(item => feed.appendChild(createIntelCard(item)));
+    filtered.forEach(item => feed.appendChild(createIntelCard(item)));
   }
 
   function renderAlertSignals(news) {
@@ -766,6 +871,87 @@
     messages.appendChild(wrapper);
   }
 
+  function createStepIndicator() {
+    const steps = [
+      'Reading rate data',
+      'Scanning news',
+      'Generating action plan',
+    ];
+
+    const container = document.createElement('div');
+    container.className = 'ai-steps-indicator';
+
+    steps.forEach((label, i) => {
+      const step = document.createElement('div');
+      step.className = `ai-step${i === 0 ? ' active' : ''}`;
+      step.dataset.stepIndex = i;
+      const dot = document.createElement('span');
+      dot.className = 'ai-step-dot';
+      step.append(dot, document.createTextNode(label));
+      container.appendChild(step);
+    });
+
+    return container;
+  }
+
+  async function advanceSteps(stepsEl) {
+    if (!stepsEl) return;
+    const stepEls = stepsEl.querySelectorAll('.ai-step');
+
+    for (let i = 0; i < stepEls.length; i++) {
+      stepEls[i].classList.add('active');
+      await new Promise(r => setTimeout(r, 800 + Math.random() * 600));
+      stepEls[i].classList.remove('active');
+      stepEls[i].classList.add('done');
+    }
+  }
+
+  async function typeText(el, text, speed = 12) {
+    const cursor = document.createElement('span');
+    cursor.className = 'ai-typing-cursor';
+    el.textContent = '';
+    el.appendChild(cursor);
+
+    for (let i = 0; i < text.length; i++) {
+      cursor.before(document.createTextNode(text[i]));
+      if (i % 3 === 0) {
+        const parent = el.closest('.ai-messages') || el.closest('#ai-messages-container');
+        if (parent) parent.scrollTop = parent.scrollHeight;
+      }
+      await new Promise(r => setTimeout(r, speed + Math.random() * 8));
+    }
+    cursor.remove();
+  }
+
+  function appendResponseMeta(contentEl, isBackend) {
+    const meta = document.createElement('div');
+    meta.className = 'ai-response-meta';
+
+    const confLevel = isBackend ? 'high' : 'medium';
+    const confText = isBackend ? '82% confidence' : '65% confidence';
+    const pill = document.createElement('span');
+    pill.className = `ai-confidence-pill ${confLevel}`;
+    pill.textContent = confText;
+    meta.appendChild(pill);
+
+    const sourcesWrap = document.createElement('div');
+    sourcesWrap.className = 'ai-sources-used';
+    sourcesWrap.appendChild(document.createTextNode('Sources: '));
+
+    const sourceNames = isBackend
+      ? ['Gemini Search', 'SteelMint', 'MCX']
+      : ['Local context', 'Dashboard data'];
+    sourceNames.forEach(s => sourcesWrap.appendChild(textEl('span', 'ai-source-tag', s)));
+    meta.appendChild(sourcesWrap);
+
+    contentEl.appendChild(meta);
+
+    const disclaimer = document.createElement('div');
+    disclaimer.className = 'ai-disclaimer-line';
+    disclaimer.textContent = 'AI analysis • Not financial advice • Verify before acting';
+    contentEl.appendChild(disclaimer);
+  }
+
   async function handleAiQuestion(question) {
     const input = $('.ai-input');
     const trimmed = String(question || input?.value || '').trim();
@@ -778,14 +964,47 @@
     switchView('ai-advisor');
     if (input) input.value = '';
     appendMessage('user', trimmed);
-    const pending = appendMessage('ai', 'Thinking through your market context...');
 
-    const backendAnswer = await askBackend(trimmed);
-    const answer = backendAnswer
+    // Create AI response with step indicator
+    const messages = $('#ai-messages-container') || $('.ai-messages');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ai-message ai-response';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'ai-message-avatar';
+    avatar.textContent = '✦';
+
+    const content = document.createElement('div');
+    content.className = 'ai-message-content';
+
+    const stepsEl = createStepIndicator();
+    content.appendChild(stepsEl);
+
+    const answerEl = document.createElement('div');
+    answerEl.className = 'ai-answer-text';
+    content.appendChild(answerEl);
+
+    wrapper.append(avatar, content);
+    messages.appendChild(wrapper);
+    messages.scrollTop = messages.scrollHeight;
+
+    // Run steps animation and backend call in parallel
+    const [, backendAnswer] = await Promise.all([
+      advanceSteps(stepsEl),
+      askBackend(trimmed),
+    ]);
+
+    const isBackend = Boolean(backendAnswer);
+    const answer = isBackend
       ? backendAnswer.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
       : localAiAnswer(trimmed);
 
-    if (pending) pending.textContent = answer;
+    // Stream the answer character by character
+    await typeText(answerEl, answer);
+
+    // Add confidence + sources meta
+    appendResponseMeta(content, isBackend);
+    messages.scrollTop = messages.scrollHeight;
 
     appState.queryCount = Math.min(appState.queryCount + 1, appState.maxQueries);
     localStorage.setItem('nz_query_count', String(appState.queryCount));

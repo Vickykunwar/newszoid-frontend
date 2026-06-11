@@ -381,6 +381,39 @@
     });
   }
 
+  function showSkeletons() {
+    // Price table skeletons
+    const priceContainer = $('#price-list');
+    if (priceContainer) {
+      clearNode(priceContainer);
+      for (let i = 0; i < 4; i++) {
+        const row = document.createElement('div');
+        row.className = 'skeleton-price-row';
+        row.innerHTML = `
+          <div class="skeleton-price-info"><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm" style="margin-top:4px"></div></div>
+          <div class="skeleton skeleton-price-value"></div>
+          <div class="skeleton skeleton-sparkline"></div>`;
+        priceContainer.appendChild(row);
+      }
+    }
+
+    // News skeletons
+    const newsContainer = $('#news-container');
+    if (newsContainer) {
+      clearNode(newsContainer);
+      for (let i = 0; i < 3; i++) {
+        const item = document.createElement('div');
+        item.className = 'skeleton-news-item';
+        item.innerHTML = `
+          <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div>
+          <div class="skeleton skeleton-headline"></div>
+          <div class="skeleton skeleton-body"></div>
+          <div class="skeleton skeleton-body short"></div>`;
+        newsContainer.appendChild(item);
+      }
+    }
+  }
+
   async function loadRates() {
     let rates = fallbackRates.map(normalizeRate);
     let isLive = false;
@@ -767,31 +800,37 @@
   function localAiAnswer(question) {
     const q = question.toLowerCase();
     const { prices, alerts } = getMarketContext();
-    const steel = prices.find(item => /steel|ms sheet|hr coil/i.test(item.name || '')) || prices[0];
-    const copper = prices.find(item => /copper/i.test(item.name || ''));
-    const topAlert = alerts[0] || 'No urgent alerts are open right now.';
+    const topAlert = alerts[0] || 'No urgent alerts right now.';
 
-    if (/copper/.test(q) && copper) {
-      return `Copper is currently ${copper.value} with ${copper.change || 'flat movement'}. Compare two supplier quotes and avoid locking a large order without checking delivery timelines.`;
+    // Try to match a specific material the user asked about
+    const matchedMaterial = prices.find(p => {
+      const name = (p.name || '').toLowerCase();
+      return q.includes(name) || name.split(/\s+/).some(word => word.length > 2 && q.includes(word));
+    });
+
+    if (matchedMaterial) {
+      return `${matchedMaterial.name}: ${matchedMaterial.value} (${matchedMaterial.change || 'stable'}). Buy partial stock if you need it this week. Wait 2-3 days for remaining quantity if trend allows.`;
     }
 
     if (/alert|risk|scan/.test(q)) {
-      return `Top risk: ${topAlert} Watch supplier validity, GST or policy updates, and material availability before committing to new quotes this week.`;
+      return `Top risk: ${topAlert} Check supplier quotes and GST updates before committing this week.`;
     }
 
     if (/opportun|tender|export/.test(q)) {
-      return 'Best near-term opportunity: refresh your rate sheet and reach local infrastructure or tender buyers while material movement is visible. Keep quote validity short and protect margins.';
+      return 'Refresh your rate sheet and target local tender/infrastructure buyers. Keep quote validity short to protect margins.';
     }
 
     if (/brief|morning|summary/.test(q)) {
-      return `Morning brief: ${topAlert} ${steel ? `${steel.name} is at ${steel.value} (${steel.change}).` : ''} Prioritize purchase timing, compliance checks, and one backup vendor today.`;
+      const top = prices[0];
+      return `Quick brief: ${top ? `${top.name} at ${top.value} (${top.change}).` : ''} ${topAlert} Focus on purchase timing and backup vendors today.`;
     }
 
-    if (/buy|steel|price|rate/.test(q) && steel) {
-      return `${steel.name} is showing ${steel.value} with ${steel.change}. If you need stock this week, buy a partial quantity now and keep the balance flexible until supplier quotes settle.`;
+    if (/buy|price|rate|cost/.test(q)) {
+      const top = prices[0];
+      return `${top ? `${top.name}: ${top.value} (${top.change}).` : ''} Buy partial now, keep balance flexible until quotes settle. Compare 2 suppliers.`;
     }
 
-    return `${appState.activePersona} view: focus on the highest-moving tracked material first, keep customer quotes time-bound, and verify any large purchase with two local suppliers before locking capital.`;
+    return `Focus on your highest-moving material first. Keep customer quotes time-bound and verify with 2 local suppliers before locking.`;
   }
 
   async function askBackend(question) {
@@ -800,7 +839,18 @@
     const payload = {
       ...profile,
       question,
-      prompt: `Answer this business-owner question in under 90 words with practical action steps: ${question}`,
+      prompt: `You are a concise business advisor. The user is a ${profile.businessType} business owner in ${profile.city}.
+
+User question: "${question}"
+
+Rules:
+- Answer ONLY the specific question asked. Do NOT give a full market overview.
+- If user asks about one material, talk only about that material.
+- Keep answer under 60 words maximum.
+- Use plain text, no markdown, no HTML, no headers.
+- Give 1-2 actionable points, like a WhatsApp reply from a market expert.
+- Include current approximate price if relevant.
+- End with one clear action recommendation.`,
     };
 
     try {
@@ -1193,6 +1243,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     updateBriefingDate();
+    showSkeletons();
     setupNavigation();
     setupSidebarAndDropdowns();
     setupAiControls();

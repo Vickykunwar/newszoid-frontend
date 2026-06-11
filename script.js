@@ -87,6 +87,40 @@
     if (subtitle) subtitle.textContent = `For: ${profile.businessType} • ${profile.city}`;
   }
 
+  function updateBriefingDate() {
+    const dateEl = $('#briefing-date');
+    if (dateEl) {
+      const now = new Date();
+      dateEl.textContent = now.toLocaleDateString('en-IN', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    }
+  }
+
+  function updateFreshness(isLive) {
+    const el = $('#price-freshness');
+    if (!el) return;
+    const dot = el.querySelector('.freshness-dot');
+    if (isLive) {
+      if (dot) dot.className = 'freshness-dot live';
+      el.childNodes.forEach(node => {
+        if (node.nodeType === 3) node.textContent = '';
+      });
+      const timeText = document.createTextNode(` Updated just now • Live`);
+      el.appendChild(timeText);
+    } else {
+      if (dot) dot.className = 'freshness-dot';
+      el.childNodes.forEach(node => {
+        if (node.nodeType === 3) node.textContent = '';
+      });
+      const timeText = document.createTextNode(` Sample data • API timed out`);
+      el.appendChild(timeText);
+    }
+  }
+
   const fallbackNews = [
     {
       headline: 'Steel prices rise as import pressure tightens local supply',
@@ -315,11 +349,12 @@
 
   async function loadRates() {
     let rates = fallbackRates.map(normalizeRate);
+    let isLive = false;
 
     if (API_BASE_URL) {
       try {
         const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 12000);
+        const timeout = window.setTimeout(() => controller.abort(), 18000);
         const response = await fetch(`${API_BASE_URL}/api/biz-agent/rates`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -332,6 +367,7 @@
           const data = await response.json();
           if (Array.isArray(data.rates) && data.rates.length) {
             rates = data.rates.map(normalizeRate);
+            isLive = true;
           }
         }
       } catch (error) {
@@ -343,6 +379,7 @@
     renderMarketList(rates);
     setActiveRate(rates[0]);
     updatePulseStrip(rates);
+    updateFreshness(isLive);
   }
 
   function showToast(message) {
@@ -596,7 +633,7 @@
     if (API_BASE_URL) {
       try {
         const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 12000);
+        const timeout = window.setTimeout(() => controller.abort(), 18000);
         const response = await fetch(`${API_BASE_URL}/api/biz-agent/news`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -663,7 +700,7 @@
 
     try {
       const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 15000);
+      const timeout = window.setTimeout(() => controller.abort(), 20000);
       const response = await fetch(`${API_BASE_URL}/api/biz-agent/analyst`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -682,24 +719,51 @@
   }
 
   function appendMessage(kind, text) {
-    const messages = $('.ai-messages');
+    const messages = $('#ai-messages-container') || $('.ai-messages');
     if (!messages) return null;
 
     const wrapper = document.createElement('div');
     wrapper.className = `ai-message ${kind === 'user' ? 'user-message' : 'ai-response'}`;
 
-    const avatar = document.createElement('div');
-    avatar.className = 'ai-message-avatar';
-    avatar.textContent = kind === 'user' ? 'You' : 'AI';
+    if (kind !== 'user') {
+      const avatar = document.createElement('div');
+      avatar.className = 'ai-message-avatar';
+      avatar.textContent = '✦';
+      wrapper.appendChild(avatar);
+    }
 
     const content = document.createElement('div');
     content.className = 'ai-message-content';
     content.textContent = text;
 
-    wrapper.append(avatar, content);
+    wrapper.appendChild(content);
     messages.appendChild(wrapper);
     messages.scrollTop = messages.scrollHeight;
     return content;
+  }
+
+  function initAiGreeting() {
+    const messages = $('#ai-messages-container');
+    if (!messages) return;
+
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ai-message ai-greeting';
+
+    const avatar = document.createElement('div');
+    avatar.className = 'ai-message-avatar';
+    avatar.textContent = '✦';
+
+    const content = document.createElement('div');
+    content.className = 'ai-message-content';
+    content.innerHTML = `<p>${greeting}, ${profile.name.split(' ')[0]}. I'm your <strong>${appState.activePersona}</strong>.</p>
+<p>I can help you with price analysis, procurement decisions, risk scanning, and opportunity discovery for your <strong>${profile.businessType}</strong> business in <strong>${profile.city}</strong>.</p>
+<p>Ask me anything, or try one of the quick prompts below ↓</p>`;
+
+    wrapper.append(avatar, content);
+    messages.appendChild(wrapper);
   }
 
   async function handleAiQuestion(question) {
@@ -909,6 +973,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
+    updateBriefingDate();
     setupNavigation();
     setupSidebarAndDropdowns();
     setupAiControls();
@@ -917,6 +982,7 @@
     setupCardMenus();
     updateQueryCount();
     populateProfileForm();
+    initAiGreeting();
     loadRates();
     loadNews();
     registerServiceWorker();

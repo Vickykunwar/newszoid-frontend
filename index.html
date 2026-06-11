@@ -141,7 +141,7 @@
                     <div class="card-header">
                         <div class="card-meta">
                             <span class="badge badge-ai">✦ Newszoid Briefing</span>
-                            <span class="card-date">Sunday, June 7, 2026</span>
+                            <span class="card-date" id="briefing-date">Loading...</span>
                         </div>
                         <button class="card-menu">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -192,9 +192,9 @@
                             </div>
                         </div>
                         <div class="card-footer">
-                            <span class="freshness-indicator">
-                                <span class="freshness-dot live"></span>
-                                Updated 4 min ago
+                            <span class="freshness-indicator" id="price-freshness">
+                                <span class="freshness-dot"></span>
+                                Loading rates...
                             </span>
                             <a href="#" class="card-link" data-view="markets">View All →</a>
                         </div>
@@ -594,89 +594,15 @@
                         </div>
                     </div>
 
-                    <div class="ai-messages">
-                        <div class="ai-message ai-greeting">
-                            <div class="ai-message-avatar">✦</div>
-                            <div class="ai-message-content">
-                                <p>Good morning, Vicky. Based on your tracked materials, I've spotted <strong>2 things worth discussing</strong> today:</p>
-                                <ul>
-                                    <li>MS Sheet is up 2.1% — Chinese import surge may push it higher</li>
-                                    <li>Copper Wire is steady but showing early uptrend signals</li>
-                                </ul>
-                                <p>What would you like to explore?</p>
-                            </div>
-                        </div>
+                    <div class="ai-messages" id="ai-messages-container">
+                        <!-- Dynamic greeting will be injected by JS -->
+                    </div>
 
-                        <div class="quick-prompts">
-                            <button class="quick-prompt">Should I buy steel now?</button>
-                            <button class="quick-prompt">Risk scan this week</button>
-                            <button class="quick-prompt">Find opportunities</button>
-                            <button class="quick-prompt">Morning briefing</button>
-                        </div>
-
-                        <div class="ai-message user-message">
-                            <div class="ai-message-content">
-                                <p>Should I buy 50 MT of MS Sheet this week or wait?</p>
-                            </div>
-                        </div>
-
-                        <div class="ai-message ai-response">
-                            <div class="ai-message-avatar">✦</div>
-                            <div class="ai-message-content">
-                                <div class="response-header">
-                                    <span class="response-persona">Procurement Advisor</span>
-                                    <div class="confidence-badge">
-                                        <span>Confidence</span>
-                                        <span class="confidence-value">87%</span>
-                                    </div>
-                                </div>
-
-                                <div class="response-section">
-                                    <h4 class="section-title">Summary</h4>
-                                    <p>Steel prices are in a short-term uptrend. Buying now avoids likely higher costs next week. Chinese import surge (12% increase) is pressuring domestic supply chains.</p>
-                                </div>
-
-                                <div class="response-section">
-                                    <h4 class="section-title">Supporting Data</h4>
-                                    <ul class="data-list">
-                                        <li>Current price: <strong>₹58,400/MT</strong> (+2.1% today)</li>
-                                        <li>7-day trend: Upward (+3.2% from ₹56,600)</li>
-                                        <li>Global trigger: US infrastructure spend surge</li>
-                                        <li>Import duty: Unchanged at 7.5%</li>
-                                        <li>Local demand: Uttarakhand tenders adding pressure</li>
-                                    </ul>
-                                </div>
-
-                                <div class="response-section">
-                                    <h4 class="section-title">Recommendation</h4>
-                                    <div class="recommendation-box">
-                                        <span class="rec-arrow">→</span>
-                                        <p>Consider procuring <strong>40-60% of monthly requirement now</strong>. Wait on remaining 40% for potential dip post-week if import volume stabilizes.</p>
-                                    </div>
-                                </div>
-
-                                <div class="response-section">
-                                    <h4 class="section-title">Sources</h4>
-                                    <div class="source-chips">
-                                        <span class="source-chip verified">SteelMint</span>
-                                        <span class="source-chip verified">MCX Live</span>
-                                        <span class="source-chip">Economic Times</span>
-                                        <span class="source-chip">+3 more</span>
-                                    </div>
-                                </div>
-
-                                <div class="response-footer">
-                                    <span class="ai-disclaimer">AI analysis. Not financial advice. Verify before large commitments.</span>
-                                    <span class="response-time">2m ago</span>
-                                </div>
-
-                                <div class="follow-up-prompts">
-                                    <button class="follow-up-btn">What about HR Coil?</button>
-                                    <button class="follow-up-btn">Set price alert</button>
-                                    <button class="follow-up-btn">Share to WhatsApp</button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="quick-prompts">
+                        <button class="quick-prompt">Should I buy steel now?</button>
+                        <button class="quick-prompt">Risk scan this week</button>
+                        <button class="quick-prompt">Find opportunities</button>
+                        <button class="quick-prompt">Morning briefing</button>
                     </div>
 
                     <div class="ai-input-area">

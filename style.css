@@ -972,10 +972,11 @@ body {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background: var(--color-positive);
+  background: #F59E0B;
 }
 
 .freshness-dot.live {
+  background: var(--color-positive);
   animation: pulse 2s infinite;
 }
 

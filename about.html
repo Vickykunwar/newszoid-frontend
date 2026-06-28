@@ -1,12 +1,13 @@
-
-html_content = '''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About Newszoid — Business Intelligence for Indian MSMEs</title>
 <meta name="description" content="Newszoid is India's AI-powered Business Intelligence platform delivering hyper-personalized news, live material rates, price alerts, and AI analyst insights to 63M+ Indian MSMEs.">
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" href="logo-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="logo-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="logo-icon.png">
 <link rel="canonical" href="https://www.newszoid.com/about">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -40,11 +41,11 @@ html{scroll-behavior:smooth}
 body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:400;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 /* ===== NAVIGATION ===== */
-nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px) saturate(180%);border-bottom:1px solid var(--border);transition:background 0.3s var(--ease-smooth),border-color 0.3s}
+nav{display:none;}
 nav.scrolled{background:rgba(10,10,10,0.95);border-color:var(--border2)}
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);transition:opacity 0.2s}
 .nav-logo:hover{opacity:0.85}
-.nav-logo img{width:28px;height:28px;border-radius:6px}
+.nav-logo img{width:28px;height:28px;border-radius:6px;object-fit:cover;border:1px solid rgba(255,255,255,0.08);box-shadow:0 2px 8px rgba(0,0,0,0.3)}
 .nav-logo-name{font-family:var(--serif);font-size:18px;font-weight:700;letter-spacing:-0.02em}
 .nav-links{display:flex;align-items:center;gap:6px}
 .nav-links a{position:relative;color:var(--text2);font-size:14px;text-decoration:none;font-weight:500;padding:8px 16px;border-radius:8px;transition:all 0.2s var(--ease-smooth)}
@@ -57,7 +58,7 @@ nav.scrolled{background:rgba(10,10,10,0.95);border-color:var(--border2)}
 .nav-cta:active{transform:translateY(0)}
 
 /* ===== HERO ===== */
-.hero{position:relative;padding:140px 40px 100px;max-width:1200px;margin:0 auto;overflow:hidden;min-height:90vh;display:flex;flex-direction:column;justify-content:center}
+.hero{position:relative;padding:60px 40px 100px;max-width:1200px;margin:0 auto;overflow:hidden;min-height:90vh;display:flex;flex-direction:column;justify-content:center}
 .hero-bg-grid{position:absolute;top:0;right:-100px;bottom:0;width:55%;opacity:0.04;background-image:linear-gradient(var(--orange) 1px,transparent 1px),linear-gradient(90deg,var(--orange) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;mask-image:linear-gradient(to left, black 40%, transparent 100%);-webkit-mask-image:linear-gradient(to left, black 40%, transparent 100%)}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--orange);letter-spacing:0.12em;text-transform:uppercase;border:1px solid rgba(255,78,26,0.25);padding:8px 16px;border-radius:100px;margin-bottom:32px;background:rgba(255,78,26,0.04);backdrop-filter:blur(4px)}
 .hero-eyebrow::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 2s infinite}
@@ -266,7 +267,7 @@ footer{border-top:1px solid var(--border);padding:48px 40px;max-width:1200px;mar
 <!-- NAVIGATION -->
 <nav id="navbar">
   <a href="https://www.newszoid.com" class="nav-logo">
-    <img src="https://www.newszoid.com/logo-icon.png" alt="Newszoid logo">
+    <img src="logo-icon.png" alt="Newszoid logo">
     <span class="nav-logo-name">Newszoid</span>
   </a>
   <div class="nav-links">
@@ -492,7 +493,7 @@ footer{border-top:1px solid var(--border);padding:48px 40px;max-width:1200px;mar
       <div class="market-num-row">
         <div class="market-big">63<span>M+</span></div>
         <div class="market-desc">Registered MSMEs in India as of 2026, contributing over 30% to India's GDP and representing the largest underserved market for business intelligence tools globally.</div>
-        <div class="market-src">Source: IBEF / Ministry of MSME, Feb 2026</div>
+        <div class="market-src">Source: IBEF / Ministry of MSME, June 2026</div>
       </div>
       <div class="market-num-row">
         <div class="market-big"><span>&#8377;</span>1.83B</div>
@@ -593,10 +594,7 @@ window.addEventListener('scroll',()=>{
   } else {
     navbar.classList.remove('scrolled');
   }
-  lastScroll = currentScroll;
 });
 </script>
 </body>
-</html>'''
-
-
+</html>

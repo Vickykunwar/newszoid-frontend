@@ -158,48 +158,23 @@
     }
   }
 
-  const fallbackNews = [
-    {
-      headline: 'Steel prices rise as import pressure tightens local supply',
-      summary: 'MS Sheet and HR Coil buyers should compare quotes before locking weekly inventory. Keep customer quote validity short while rates remain active.',
-      source: 'Economic Times',
-      time: '2h ago',
-      category: 'PRICE',
-      impact: 'HIGH',
-      sentiment: 'BEARISH',
-      signal: 'Buy partial stock',
-    },
-    {
-      headline: 'MSME credit support opens working-capital window',
-      summary: 'Manufacturers with active documentation can use credit support as a buffer during volatile material cycles.',
-      source: 'Business Standard',
-      time: '5h ago',
-      category: 'POLICY',
-      impact: 'MEDIUM',
-      sentiment: 'BULLISH',
-      signal: 'Check eligibility',
-    },
-    {
-      headline: 'Uttarakhand infrastructure tenders lift fabrication demand',
-      summary: 'Local road and building work can create near-term demand for steel fabricators and suppliers around Haridwar.',
-      source: 'Times of India',
-      time: 'Today',
-      category: 'INDUSTRY',
-      impact: 'HIGH',
-      sentiment: 'BULLISH',
-      signal: 'Prepare rate sheet',
-    },
-  ];
+  let currentNewsData = [];
 
-  let currentNewsData = fallbackNews;
-
-  const fallbackRates = [
-    { material: 'MS Sheet', rate: 58400, change: 1200, pct: 2.1, trend: 'up', market: 'Haridwar' },
-    { material: 'HR Coil', rate: 55800, change: -400, pct: -0.7, trend: 'down', market: 'Haridwar' },
-    { material: 'Copper Wire', rate: 742000, change: 8500, pct: 1.2, trend: 'up', market: 'Haridwar' },
-    { material: 'Diesel', rate: 92.5, change: -0.8, pct: -0.9, trend: 'down', market: 'Haridwar' },
-    { material: 'Cement OPC', rate: 380, change: 0, pct: 0, trend: 'flat', market: 'Haridwar' },
-  ];
+  // ── Error state renderer ──
+  function showErrorState(container, message) {
+    if (!container) return;
+    clearNode(container);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-state';
+    errorDiv.innerHTML = `
+      <div style="text-align:center; padding: var(--space-5); color: var(--color-text-muted);">
+        <div style="font-size: 2rem; margin-bottom: var(--space-2);">⚠️</div>
+        <div style="font-size: 0.85rem; font-weight: 500; color: var(--color-text-secondary); margin-bottom: var(--space-1);">${message}</div>
+        <div style="font-size: 0.75rem;">Pull to refresh or check your connection</div>
+        <button onclick="location.reload()" style="margin-top: var(--space-3); padding: 6px 16px; border-radius: var(--radius-sm); border: 1px solid var(--color-border-default); background: var(--color-bg-elevated); color: var(--color-text-primary); cursor: pointer; font-size: 0.75rem;">Retry</button>
+      </div>`;
+    container.appendChild(errorDiv);
+  }
 
   function clearNode(node) {
     if (!node) return;
@@ -589,34 +564,13 @@
   }
 
   async function loadRates() {
-    // Dynamically create fallback rates based on user's selected materials
-    const userItems = profile.items && profile.items.length ? profile.items : ['MS Sheet', 'HR Coil', 'Copper Wire', 'Diesel', 'Cement OPC'];
-    let rates = userItems.map((item, i) => {
-      // Find in default fallbacks if it exists
-      const existing = fallbackRates.find(f => f.material.toLowerCase() === item.toLowerCase());
-      if (existing) return normalizeRate(existing);
-      
-      // Generate a realistic looking mock rate for custom items
-      const baseRate = 1000 + (item.length * 1000) + (i * 500);
-      const isUp = Math.random() > 0.5;
-      const pct = (Math.random() * 3).toFixed(1) * (isUp ? 1 : -1);
-      const change = Math.round(baseRate * (Math.abs(pct) / 100));
-      return normalizeRate({
-        material: item,
-        rate: baseRate + (isUp ? change : -change),
-        change: isUp ? change : -change,
-        pct: pct,
-        trend: isUp ? 'up' : 'down',
-        market: profile.city
-      });
-    });
-    
+    let rates = [];
     let isLive = false;
 
     if (API_BASE_URL) {
       try {
         const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 18000);
+        const timeout = window.setTimeout(() => controller.abort(), 20000);
         const response = await fetch(`${API_BASE_URL}/api/biz-agent/rates`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -633,8 +587,16 @@
           }
         }
       } catch (error) {
-        console.warn('Rate feed fallback used:', error);
+        console.warn('Rate API failed:', error);
       }
+    }
+
+    if (!rates.length) {
+      // Show error state — no fake data
+      showErrorState($('#price-container'), 'Unable to load live prices');
+      showErrorState($('#material-detail'), 'Market data unavailable');
+      updateFreshness(false);
+      return;
     }
 
     appState.currentRates = rates;
@@ -982,12 +944,12 @@
   }
 
   async function loadNews() {
-    let news = fallbackNews;
+    let news = [];
 
     if (API_BASE_URL) {
       try {
         const controller = new AbortController();
-        const timeout = window.setTimeout(() => controller.abort(), 18000);
+        const timeout = window.setTimeout(() => controller.abort(), 20000);
         const response = await fetch(`${API_BASE_URL}/api/biz-agent/news`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1003,8 +965,17 @@
           }
         }
       } catch (error) {
-        console.warn('News feed fallback used:', error);
+        console.warn('News API failed:', error);
       }
+    }
+
+    if (!news.length) {
+      // Show error states — no fake data
+      showErrorState($('#news-container'), 'Unable to load news');
+      showErrorState($('#briefing-container'), 'Briefing unavailable');
+      showErrorState($('#alerts-feed'), 'Alerts unavailable');
+      showErrorState($('.intelligence-feed'), 'Intelligence feed unavailable');
+      return;
     }
 
     currentNewsData = news;
@@ -1186,10 +1157,10 @@
 
     // Build persona-specific system prompt
     const personaPrompts = {
-      'Market Analyst': 'You are a market analyst specializing in Indian commodity markets. Focus on price trends, supply-demand dynamics, and short-term forecasts.',
-      'Procurement Advisor': 'You are a procurement advisor for Indian MSMEs. Focus on buy/wait/hold decisions, supplier strategies, and cost optimization.',
-      'Opportunity Finder': 'You are a business opportunity scout. Focus on export windows, tender openings, demand surges, and growth signals in the Indian market.',
-      'Risk Detector': 'You are a risk analyst for Indian businesses. Focus on policy changes, supply disruptions, tariff risks, and currency fluctuations.',
+      'Market Analyst': 'You are a quick market analyst. Focus on price trends and short-term forecasts.',
+      'Procurement Advisor': 'You are a procurement advisor. Focus on buy/wait/hold decisions.',
+      'Opportunity Finder': 'You are a business opportunity scout. Focus on growth signals.',
+      'Risk Detector': 'You are a risk analyst. Focus on policy changes and supply disruptions.',
     };
     const personaContext = personaPrompts[appState.activePersona] || personaPrompts['Market Analyst'];
 
@@ -1197,20 +1168,16 @@
       ...profile,
       question,
       persona: appState.activePersona,
-      prompt: `${personaContext}
+      prompt: `${personaContext} The user is a ${profile.businessType} owner in ${profile.city}.
 
-The user is a ${profile.businessType} business owner in ${profile.city}.
+Question: "${question}"
 
-User question: "${question}"
-
-Rules:
-- Answer ONLY the specific question asked. Do NOT give a full market overview.
-- If user asks about one material, talk only about that material.
-- Keep answer under 60 words maximum.
-- Use plain text, no markdown, no HTML, no headers.
-- Give 1-2 actionable points, like a WhatsApp reply from a market expert.
-- Include current approximate price if relevant.
-- End with one clear action recommendation.`,
+IMPORTANT RULES:
+- DIRECTLY answer the question in 2-3 sentences MAX (under 50 words).
+- NO greetings, NO introductions, NO headers, NO HTML, NO markdown.
+- Be specific: include numbers, prices, or dates when possible.
+- End with ONE clear action the user should take.
+- Talk like a quick WhatsApp reply from a trusted market expert.`,
     };
 
     try {
@@ -1691,12 +1658,21 @@ Rules:
         });
       } else if (label === 'Share') {
         btn.addEventListener('click', async () => {
-          const shareData = { title: 'Newszoid', text: 'Newszoid business briefing', url: location.href };
+          // Build briefing text for WhatsApp sharing
+          const briefingItems = [];
+          $$('#briefing-container .briefing-content strong').forEach(el => {
+            briefingItems.push(el.textContent);
+          });
+          const briefingText = `📊 *Newszoid Business Briefing*\n${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}\n\n` +
+            (briefingItems.length ? briefingItems.map(b => `• ${b}`).join('\n') : 'Check Newszoid for your daily briefing') +
+            `\n\n🔗 ${location.href}`;
+
+          // Try native share first, fallback to WhatsApp deep link
           if (navigator.share) {
-            await navigator.share(shareData).catch(() => {});
+            await navigator.share({ title: 'Newszoid Briefing', text: briefingText, url: location.href }).catch(() => {});
           } else {
-            await navigator.clipboard?.writeText(location.href).catch(() => {});
-            showToast('Dashboard link copied.');
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(briefingText)}`;
+            window.open(waUrl, '_blank');
           }
         });
       } else if (label === 'Full View') {
@@ -1704,9 +1680,22 @@ Rules:
       } else if (label === 'Ask AI' || label === 'Ask AI about this') {
         btn.addEventListener('click', () => handleAiQuestion('Explain this update for my business'));
       } else if (label === 'Set Price Alert') {
-        btn.addEventListener('click', () => showToast('Price alert saved for this material.'));
+        btn.addEventListener('click', () => {
+          // Get current active material
+          const activeName = $('.material-name')?.textContent || 'Material';
+          const activePrice = $('.material-price')?.textContent || '';
+          const alerts = JSON.parse(localStorage.getItem('nz_price_alerts') || '[]');
+          const exists = alerts.find(a => a.material === activeName);
+          if (exists) {
+            showToast(`Alert already set for ${activeName}`);
+            return;
+          }
+          alerts.push({ material: activeName, price: activePrice, date: new Date().toISOString() });
+          localStorage.setItem('nz_price_alerts', JSON.stringify(alerts));
+          showToast(`✅ Price alert set for ${activeName} at ${activePrice}`);
+        });
       } else if (label === 'View History') {
-        btn.addEventListener('click', () => showToast('Rate history is ready in the Markets view.'));
+        btn.addEventListener('click', () => switchView('markets'));
       } else if (label === 'Add Material' || label === 'Settings') {
         btn.addEventListener('click', () => switchView('workspace'));
       }

@@ -6,14 +6,51 @@
     <title>Newszoid-Business Intelligence for Indian MSMEs</title>
     <meta name="description" content="Newszoid is India's leading AI business intelligence platform. Empower your MSME with real-time raw material rates, hyper-personalized industry news, and AI-driven procurement insights.">
     <meta name="theme-color" content="#060B18">
-    <link rel="icon" type="image/png" sizes="192x192" href="logo-icon.png">
-    <link rel="icon" type="image/png" href="logo-icon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="logo-icon.png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo-192.png">
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2026-06-28-responsive-2">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2026-07-10-v1">
+    
+    <!-- Auto-Update Mechanism -->
+    <script>
+      (async function checkVersion() {
+        try {
+          const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const currentVersion = localStorage.getItem('newszoid_version');
+          
+          if (currentVersion && currentVersion !== data.version) {
+            console.log(`[AutoUpdate] New version detected: ${data.version}. Clearing cache...`);
+            // Clear local storage data to force fresh fetch
+            localStorage.removeItem('nz_rates_cache');
+            localStorage.removeItem('nz_news_cache');
+            localStorage.removeItem('nz_rates_v2');
+            localStorage.removeItem('nz_news_v2');
+            localStorage.setItem('newszoid_version', data.version);
+            
+            // Unregister old service workers
+            if ('serviceWorker' in navigator) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              for (let reg of registrations) {
+                await reg.unregister();
+              }
+            }
+            
+            // Force hard reload to get latest index.html and assets
+            window.location.reload(true);
+          } else if (!currentVersion) {
+            localStorage.setItem('newszoid_version', data.version);
+          }
+        } catch (e) {
+          // Ignore network errors if offline
+        }
+      })();
+    </script>
 </head>
 <body>
     <!-- Desktop Sidebar -->
@@ -21,7 +58,7 @@
         <div class="sidebar-header">
             <div class="logo">
                 <span class="logo-mark"><img src="logo-icon.png" alt="" aria-hidden="true"></span>
-                <span class="logo-text">Newszoid</span>
+                <span class="logo-text">News<span style="color: #FF5500;">zoid</span></span>
             </div>
             <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -54,7 +91,7 @@
                 <a href="#" class="nav-item" data-view="alerts">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
                     <span class="nav-label">Alerts</span>
-                    <span class="nav-badge">3</span>
+                    <span class="nav-badge"></span>
                 </a>
                 <a href="#" class="nav-item" data-view="about">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -72,12 +109,12 @@
                 <img src="https://ui-avatars.com/api/?name=Vicky+S&background=FF4A1F&color=fff&size=40" alt="User" id="sidebarAvatarImg">
                 <div class="user-info">
                     <span class="user-name">Vicky S.</span>
-                    <span class="user-plan">Free Plan</span>
+                    <span class="user-plan"></span>
                 </div>
             </div>
             <div class="streak-indicator">
                 <span class="streak-icon">🔥</span>
-                <span class="streak-count">12</span>
+                <span class="streak-count"></span>
             </div>
         </div>
     </aside>
@@ -98,24 +135,24 @@
 
             <div class="market-pulse-strip">
                 <div class="pulse-item">
-                    <span class="pulse-label">Steel</span>
-                    <span class="pulse-value up">▲2.1%</span>
+                    <span class="pulse-label"><span class="skeleton skeleton-text sm" style="width:40px;height:12px;display:inline-block;"></span></span>
+                    <span class="pulse-value neutral"><span class="skeleton skeleton-text sm" style="width:36px;height:12px;display:inline-block;"></span></span>
                 </div>
                 <div class="pulse-item">
-                    <span class="pulse-label">Copper</span>
-                    <span class="pulse-value up">▲1.2%</span>
+                    <span class="pulse-label"><span class="skeleton skeleton-text sm" style="width:44px;height:12px;display:inline-block;"></span></span>
+                    <span class="pulse-value neutral"><span class="skeleton skeleton-text sm" style="width:36px;height:12px;display:inline-block;"></span></span>
                 </div>
                 <div class="pulse-item">
-                    <span class="pulse-label">Crude</span>
-                    <span class="pulse-value down">▼0.8%</span>
+                    <span class="pulse-label"><span class="skeleton skeleton-text sm" style="width:38px;height:12px;display:inline-block;"></span></span>
+                    <span class="pulse-value neutral"><span class="skeleton skeleton-text sm" style="width:36px;height:12px;display:inline-block;"></span></span>
                 </div>
                 <div class="pulse-item">
-                    <span class="pulse-label">INR/USD</span>
-                    <span class="pulse-value neutral">83.4</span>
+                    <span class="pulse-label"><span class="skeleton skeleton-text sm" style="width:48px;height:12px;display:inline-block;"></span></span>
+                    <span class="pulse-value neutral"><span class="skeleton skeleton-text sm" style="width:36px;height:12px;display:inline-block;"></span></span>
                 </div>
                 <div class="pulse-item">
-                    <span class="pulse-label">Sensex</span>
-                    <span class="pulse-value up">▲0.3%</span>
+                    <span class="pulse-label"><span class="skeleton skeleton-text sm" style="width:42px;height:12px;display:inline-block;"></span></span>
+                    <span class="pulse-value neutral"><span class="skeleton skeleton-text sm" style="width:36px;height:12px;display:inline-block;"></span></span>
                 </div>
                 <div class="pulse-live">
                     <span class="live-dot"></span>
@@ -124,13 +161,17 @@
             </div>
 
             <div class="top-bar-right">
+                <button class="btn retry-btn" id="nzRetryBtn" type="button" title="Refresh rates and news">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                    Refresh now
+                </button>
                 <button class="btn ai-header-btn" data-view="ai-advisor">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
                     Ask Newszoid
                 </button>
                 <button class="icon-btn notif-btn" id="notifBtn" aria-label="Notifications">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    <span class="notif-badge">3</span>
+                    <span class="notif-badge"></span>
                 </button>
                 <div class="header-avatar" id="headerAvatarBtn" title="Edit Profile">VS</div>
             </div>
@@ -153,18 +194,17 @@
                     <div class="card-body">
                         <h2 class="briefing-title">Today's Intelligence for Your Business</h2>
                         <ul class="briefing-list" id="briefing-container">
-                            <li class="briefing-item">
-                                <span class="briefing-bullet"></span>
-                                <div class="briefing-content">
-                                    <strong>Loading your personalized Newszoid briefing...</strong>
-                                </div>
-                            </li>
+                            <div class="skeleton-news-item">
+                                <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div>
+                                <div class="skeleton skeleton-headline"></div>
+                                <div class="skeleton skeleton-body short"></div>
+                            </div>
                         </ul>
                     </div>
                     <div class="card-footer">
                         <div class="briefing-attribution">
                             <span class="ai-badge">Generated by Newszoid</span>
-                            <span class="source-count">15 sources analyzed</span>
+                            <span class="source-count"><span class="skeleton skeleton-text sm" style="width:100px;height:12px;display:inline-block;"></span></span>
                         </div>
                         <div class="briefing-actions">
                             <button class="btn btn-ghost btn-sm">
@@ -191,7 +231,16 @@
                         </div>
                         <div class="card-body">
                             <div class="price-table" id="price-container">
-                                <div style="padding: 16px; text-align: center; color: var(--color-text-muted);">Fetching live market rates...</div>
+                                <div class="skeleton-price-row">
+                                    <div class="skeleton-price-info"><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm" style="margin-top:4px"></div></div>
+                                    <div class="skeleton skeleton-price-value"></div>
+                                    <div class="skeleton skeleton-sparkline"></div>
+                                </div>
+                                <div class="skeleton-price-row">
+                                    <div class="skeleton-price-info"><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm" style="margin-top:4px"></div></div>
+                                    <div class="skeleton skeleton-price-value"></div>
+                                    <div class="skeleton skeleton-sparkline"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -213,16 +262,19 @@
                         </div>
                         <div class="card-body">
                             <div class="alert-list" id="alerts-container">
-                                <div style="padding: 16px; text-align: center; color: var(--color-text-muted);">Scanning market data for alerts...</div>
+                                <div class="skeleton-news-item">
+                                    <div class="skeleton-row"><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div>
+                                    <div class="skeleton skeleton-headline"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="card-footer">
                             <div class="alert-summary">
-                                <span class="summary-badge high">🔴 1 High</span>
-                                <span class="summary-badge medium">🟡 2 Med</span>
-                                <span class="summary-badge info">🟢 2 Info</span>
+                                <span class="skeleton skeleton-text sm" style="width:60px;height:14px;display:inline-block;"></span>
+                                <span class="skeleton skeleton-text sm" style="width:56px;height:14px;display:inline-block;"></span>
+                                <span class="skeleton skeleton-text sm" style="width:52px;height:14px;display:inline-block;"></span>
                             </div>
-                            <a href="#" class="card-link">View All →</a>
+                            <a href="#" class="card-link" data-view="alerts">View All →</a>
                         </div>
                     </div>
 
@@ -236,12 +288,15 @@
                         </div>
                         <div class="card-body">
                             <div class="opportunity-list" id="opportunities-container">
-                                <div style="padding: 16px; text-align: center; color: var(--color-text-muted);">Analyzing market for opportunities...</div>
+                                <div class="skeleton-news-item">
+                                    <div class="skeleton-row"><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div>
+                                    <div class="skeleton skeleton-headline"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="card-footer">
-                            <span class="opportunity-count">2 signals detected today</span>
-                            <a href="#" class="card-link">Explore →</a>
+                            <span class="opportunity-count"><span class="skeleton skeleton-text sm" style="width:120px;height:12px;display:inline-block;"></span></span>
+                            <a href="#" class="card-link" data-view="intelligence">Explore →</a>
                         </div>
                     </div>
                 </div>
@@ -261,7 +316,11 @@
                         </div>
                         <div class="card-body">
                             <div class="news-list" id="news-container">
-                                <div style="padding: 16px; text-align: center; color: var(--color-text-muted);">Fetching industry intelligence...</div>
+                                <div class="skeleton-news-item">
+                                    <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div>
+                                    <div class="skeleton skeleton-headline"></div>
+                                    <div class="skeleton skeleton-body"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -273,14 +332,17 @@
                     <!-- AI Recommendations -->
                     <div class="card ai-rec-card">
                         <div class="card-header">
-                            <h3 class="card-title">AI Recommendations</h3>
+                            <h3 class="card-title">Newszoid Intelligence Recommendations</h3>
                             <button class="card-menu">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                             </button>
                         </div>
                         <div class="card-body">
                             <div class="rec-list" id="recommendations-container">
-                                <div style="padding: 16px; text-align: center; color: var(--color-text-muted);">Generating recommendations...</div>
+                                <div class="skeleton-news-item">
+                                    <div class="skeleton-row"><div class="skeleton skeleton-text sm"></div></div>
+                                    <div class="skeleton skeleton-headline"></div>
+                                </div>
                             </div>
                         </div>
                         <div class="card-footer">
@@ -309,57 +371,38 @@
             </div>
 
             <div class="markets-grid">
-                <div class="card material-detail-card">
+                <div class="card material-detail-card" id="material-detail">
                     <div class="material-header">
                         <div class="material-info">
-                            <h3 class="material-name">MS Sheet</h3>
-                            <span class="material-location">📍 Haridwar Market</span>
+                            <h3 class="material-name">Loading...</h3>
+                            <span class="material-location">📍 Market</span>
                         </div>
                         <div class="material-price-block">
-                            <span class="material-price">₹58,400</span>
-                            <span class="material-change up">▲ +₹1,200 (2.1%)</span>
+                            <span class="material-price">—</span>
+                            <span class="material-change neutral">Loading prices...</span>
                         </div>
                     </div>
                     <div class="material-chart">
                         <div class="chart-placeholder">
-                            <svg viewBox="0 0 400 120" preserveAspectRatio="none">
-                                <defs>
-                                    <linearGradient id="chartGrad1" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stop-color="#FF4A1F" stop-opacity="0.3"/>
-                                        <stop offset="100%" stop-color="#FF4A1F" stop-opacity="0"/>
-                                    </linearGradient>
-                                </defs>
-                                <rect x="0" y="0" width="400" height="120" fill="transparent"/>
-                                <path d="M0,100 L40,85 L80,75 L120,70 L160,55 L200,45 L240,40 L280,35 L320,25 L360,15 L400,10" fill="none" stroke="#FF4A1F" stroke-width="2"/>
-                                <path d="M0,100 L40,85 L80,75 L120,70 L160,55 L200,45 L240,40 L280,35 L320,25 L360,15 L400,10 L400,120 L0,120 Z" fill="url(#chartGrad1)"/>
-                                <line x1="0" y1="100" x2="400" y2="100" stroke="#1F2937" stroke-width="0.5" stroke-dasharray="4"/>
-                                <line x1="0" y1="60" x2="400" y2="60" stroke="#1F2937" stroke-width="0.5" stroke-dasharray="4"/>
-                                <line x1="0" y1="20" x2="400" y2="20" stroke="#1F2937" stroke-width="0.5" stroke-dasharray="4"/>
-                            </svg>
-                            <div class="chart-labels">
-                                <span>Jun 1</span>
-                                <span>Jun 3</span>
-                                <span>Jun 5</span>
-                                <span>Jun 7</span>
-                            </div>
+                            <div style="text-align:center; padding: var(--space-5); color: var(--color-text-muted); font-size: 0.8rem;">Loading chart...</div>
                         </div>
                     </div>
                     <div class="material-stats">
                         <div class="stat">
                             <span class="stat-label">7-Day High</span>
-                            <span class="stat-value">₹58,400</span>
+                            <span class="stat-value">—</span>
                         </div>
                         <div class="stat">
                             <span class="stat-label">7-Day Low</span>
-                            <span class="stat-value">₹56,800</span>
+                            <span class="stat-value">—</span>
                         </div>
                         <div class="stat">
                             <span class="stat-label">Volatility</span>
-                            <span class="stat-value">Medium</span>
+                            <span class="stat-value">—</span>
                         </div>
                         <div class="stat">
                             <span class="stat-label">Alert</span>
-                            <span class="stat-value">Set at ₹60,000</span>
+                            <span class="stat-value" id="price-alert-status">Not set</span>
                         </div>
                     </div>
                     <div class="material-actions">
@@ -373,67 +416,18 @@
                     <div class="card-header">
                         <h3 class="card-title">My Materials</h3>
                         <span class="freshness-indicator">
-                            <span class="freshness-dot live"></span>
-                            Live
+                            <span class="freshness-dot"></span>
+                            Loading...
                         </span>
                     </div>
                     <div class="card-body">
                         <div class="material-list">
-                            <div class="material-list-item active">
-                                <div class="ml-info">
-                                    <span class="ml-name">MS Sheet</span>
-                                    <span class="ml-location">Haridwar</span>
-                                </div>
-                                <div class="ml-price">
-                                    <span class="ml-value">₹58,400</span>
-                                    <span class="ml-change up">▲ 2.1%</span>
-                                </div>
-                            </div>
-                            <div class="material-list-item">
-                                <div class="ml-info">
-                                    <span class="ml-name">HR Coil</span>
-                                    <span class="ml-location">Haridwar</span>
-                                </div>
-                                <div class="ml-price">
-                                    <span class="ml-value">₹55,800</span>
-                                    <span class="ml-change down">▼ 0.7%</span>
-                                </div>
-                            </div>
-                            <div class="material-list-item">
-                                <div class="ml-info">
-                                    <span class="ml-name">Copper Wire</span>
-                                    <span class="ml-location">Haridwar</span>
-                                </div>
-                                <div class="ml-price">
-                                    <span class="ml-value">₹7,42,000</span>
-                                    <span class="ml-change up">▲ 1.2%</span>
-                                </div>
-                            </div>
-                            <div class="material-list-item">
-                                <div class="ml-info">
-                                    <span class="ml-name">Diesel</span>
-                                    <span class="ml-location">Haridwar</span>
-                                </div>
-                                <div class="ml-price">
-                                    <span class="ml-value">₹92.50</span>
-                                    <span class="ml-change down">▼ 0.9%</span>
-                                </div>
-                            </div>
-                            <div class="material-list-item">
-                                <div class="ml-info">
-                                    <span class="ml-name">Cement OPC</span>
-                                    <span class="ml-location">Haridwar</span>
-                                </div>
-                                <div class="ml-price">
-                                    <span class="ml-value">₹380</span>
-                                    <span class="ml-change neutral">→ 0.0%</span>
-                                </div>
-                            </div>
+                            <!-- Dynamically populated by JS -->
                         </div>
                     </div>
                     <div class="card-footer">
                         <span class="material-count">5 items tracked</span>
-                        <span class="upgrade-hint">Free limit: 3 • <a href="#">Upgrade to Pro</a></span>
+                        <span class="upgrade-hint"></span>
                     </div>
                 </div>
             </div>
@@ -451,78 +445,7 @@
                 </div>
             </div>
             <div class="intelligence-feed" id="intelligence-feed">
-                <div class="card intel-card">
-                    <div class="intel-source-row">
-                        <img src="https://www.google.com/s2/favicons?domain=economictimes.indiatimes.com&sz=32" alt="ET" class="news-favicon">
-                        <span class="intel-source">Economic Times</span>
-                        <span class="intel-tier tier-1">Tier 1</span>
-                        <span class="intel-time">2 hours ago</span>
-                        <span class="intel-badge breaking">Breaking</span>
-                    </div>
-                    <h3 class="intel-headline">Steel imports from China rise 12% — domestic prices under pressure</h3>
-                    <p class="intel-summary">Surging Chinese steel imports are flooding regional markets, causing severe domestic pricing pressure. Local suppliers are adjusting margins downwards to stay competitive. This trend is expected to continue through Q2 2026.</p>
-                    <div class="intel-tags">
-                        <span class="tag tag-risk">Risk</span>
-                        <span class="tag">Steel</span>
-                        <span class="tag">Imports</span>
-                        <span class="tag">China</span>
-                    </div>
-                    <div class="intel-footer">
-                        <div class="intel-sources">
-                            <span>Also reported by:</span>
-                            <span class="source-chip">Business Standard</span>
-                            <span class="source-chip">MoneyControl</span>
-                        </div>
-                        <button class="btn btn-ghost btn-sm">Ask Newszoid about this</button>
-                    </div>
-                </div>
-
-                <div class="card intel-card">
-                    <div class="intel-source-row">
-                        <img src="https://www.google.com/s2/favicons?domain=business-standard.com&sz=32" alt="BS" class="news-favicon">
-                        <span class="intel-source">Business Standard</span>
-                        <span class="intel-tier tier-1">Tier 1</span>
-                        <span class="intel-time">5 hours ago</span>
-                    </div>
-                    <h3 class="intel-headline">MSME Ministry announces ₹500Cr credit guarantee for manufacturers</h3>
-                    <p class="intel-summary">A new credit guarantee scheme of ₹500 Crore is now active for micro and small manufacturing units, helping secure interest-free working capital from public sector banks. Eligibility: turnover under ₹25Cr, manufacturing priority.</p>
-                    <div class="intel-tags">
-                        <span class="tag tag-opportunity">Opportunity</span>
-                        <span class="tag">MSME</span>
-                        <span class="tag">Credit</span>
-                        <span class="tag">Policy</span>
-                    </div>
-                    <div class="intel-footer">
-                        <div class="intel-sources">
-                            <span>Also reported by:</span>
-                            <span class="source-chip">PIB India</span>
-                        </div>
-                        <button class="btn btn-ghost btn-sm">Ask Newszoid about this</button>
-                    </div>
-                </div>
-
-                <div class="card intel-card">
-                    <div class="intel-source-row">
-                        <img src="https://www.google.com/s2/favicons?domain=timesofindia.indiatimes.com&sz=32" alt="TOI" class="news-favicon">
-                        <span class="intel-source">Times of India</span>
-                        <span class="intel-tier tier-2">Tier 2</span>
-                        <span class="intel-time">Yesterday</span>
-                    </div>
-                    <h3 class="intel-headline">Uttarakhand infrastructure project tenders open — steel demand expected</h3>
-                    <p class="intel-summary">Massive road and building reconstruction project tenders are officially open across Uttarakhand. Local fabrication and material suppliers anticipate high orders this quarter. Project value estimated at ₹2,400Cr over 18 months.</p>
-                    <div class="intel-tags">
-                        <span class="tag tag-demand">Demand</span>
-                        <span class="tag">Infrastructure</span>
-                        <span class="tag">Uttarakhand</span>
-                    </div>
-                    <div class="intel-footer">
-                        <div class="intel-sources">
-                            <span>Also reported by:</span>
-                            <span class="source-chip">Hindustan Times</span>
-                        </div>
-                        <button class="btn btn-ghost btn-sm">Ask Newszoid about this</button>
-                    </div>
-                </div>
+                <!-- Populated dynamically by JS with live news data or skeletons -->
             </div>
         </div>
 
@@ -576,13 +499,13 @@
                         <div class="ai-header-info">
                             <span class="ai-avatar" style="display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span>
                             <div class="ai-header-text">
-                                <span class="ai-name">Procurement Advisor</span>
+                                <span class="ai-name">Market Analyst</span>
                                 <span class="ai-status">Online • Ready to help</span>
                             </div>
                         </div>
                         <div class="ai-query-count">
-                            <span class="query-used">1</span>
-                            <span class="query-total">/ 3 today</span>
+                            <span class="query-used">0</span>
+                            <span class="query-total">/ — today</span>
                         </div>
                     </div>
 
@@ -606,7 +529,7 @@
                         </div>
                         <div class="ai-input-hint">
                             <span>Free: 3 queries/day</span>
-                            <a href="#" class="upgrade-link">Upgrade to Pro → 50/day</a>
+                            <a href="#" class="upgrade-link" style="display:none;">Upgrade to Pro → 50/day</a>
                         </div>
                     </div>
                 </div>
@@ -705,6 +628,52 @@
                                         </select>
                                     </div>
                                 </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>WhatsApp Number (optional)</label>
+                                        <input type="tel" class="form-input" id="profileWhatsapp" placeholder="e.g. 496815654654" inputmode="numeric">
+                                    </div>
+                                    <div class="form-group" style="display:flex; align-items:flex-end;">
+                                        <p class="form-hint" style="margin:0;">Automatic WhatsApp delivery requires a verified opt-in and configured provider. Until then, use Share to send a briefing manually.</p>
+                                    </div>
+                                </div>
+                                <section class="profile-research" id="profileResearchPanel" aria-live="polite">
+                                    <div class="profile-research-header">
+                                        <span class="profile-research-icon" aria-hidden="true">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="11" cy="11" r="7"></circle>
+                                                <line x1="20" y1="20" x2="16.65" y2="16.65"></line>
+                                                <path d="M8 11h6M11 8v6"></path>
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <h4>Automatic business research</h4>
+                                            <p id="profileResearchStatus">Enter a company or owner name and location to begin.</p>
+                                        </div>
+                                        <span class="profile-research-badge" id="profileResearchBadge">Ready</span>
+                                    </div>
+                                    <div class="profile-research-loading" id="profileResearchLoading" hidden>
+                                        <span></span><span></span><span></span>
+                                    </div>
+                                    <div class="profile-research-content" id="profileResearchContent" hidden>
+                                        <p class="profile-research-summary" id="profileResearchSummary"></p>
+                                        <div class="profile-research-meta">
+                                            <span id="profileResearchIndustry"></span>
+                                            <span id="profileResearchLocation"></span>
+                                            <span id="profileResearchConfidence"></span>
+                                        </div>
+                                        <p class="profile-research-context" id="profileResearchContext"></p>
+                                        <div>
+                                            <span class="profile-research-label">Suggested items for this business and location</span>
+                                            <div class="profile-suggestion-list" id="profileSuggestionList"></div>
+                                        </div>
+                                        <div class="profile-research-actions">
+                                            <div class="profile-research-sources" id="profileResearchSources"></div>
+                                            <button type="button" class="btn btn-secondary btn-sm" id="applyProfileResearch">Use suggestions</button>
+                                        </div>
+                                    </div>
+                                    <p class="profile-research-privacy">Only public business information is searched. Your email and WhatsApp number are never included.</p>
+                                </section>
                                 <div class="form-group full">
                                     <label>Tracked Materials</label>
                                     <div class="tag-input">
@@ -715,7 +684,7 @@
                                         <span class="tag-chip">Cement OPC <button class="tag-remove">×</button></span>
                                         <input type="text" placeholder="+ Add material" class="tag-input-field">
                                     </div>
-                                    <p class="form-hint">Free plan: 3 materials max. You have 5 — <a href="#">Upgrade to Pro</a></p>
+                                    <p class="form-hint">Free plan: 3 materials max.</p>
                                 </div>
                             </div>
                         </div>
@@ -748,7 +717,7 @@
         <a href="#" class="mobile-nav-item" data-view="alerts">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
             <span>Alerts</span>
-            <span class="mobile-badge">3</span>
+            <span class="mobile-badge"></span>
         </a>
         <a href="#" class="mobile-nav-item" data-view="workspace">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m4.22-10.22l4.24-4.24M6.34 6.34L2.1 2.1m17.8 17.8l-4.24-4.24M6.34 17.66l-4.24 4.24M23 12h-6m-6 0H1m20.07-4.93l-4.24 4.24M6.34 6.34l-4.24-4.24"></path></svg>
@@ -763,29 +732,10 @@
             <button class="dropdown-close" id="closeNotif">✕</button>
         </div>
         <div class="dropdown-body">
-            <div class="notif-item notif-high">
-                <div class="notif-dot"></div>
-                <div class="notif-content">
-                    <div class="notif-title">Steel price surge alert</div>
-                    <div class="notif-desc">MS Sheet up 2.1% — consider procurement</div>
-                    <div class="notif-time">2m ago</div>
-                </div>
-            </div>
-            <div class="notif-item notif-medium">
-                <div class="notif-dot"></div>
-                <div class="notif-content">
-                    <div class="notif-title">GST policy update</div>
-                    <div class="notif-desc">Circular 45/2026 affects your category</div>
-                    <div class="notif-time">1h ago</div>
-                </div>
-            </div>
-            <div class="notif-item notif-ai">
-                <div class="notif-dot"></div>
-                <div class="notif-content">
-                    <div class="notif-title">AI Opportunity detected</div>
-                    <div class="notif-desc">UAE export window — 82% confidence</div>
-                    <div class="notif-time">3h ago</div>
-                </div>
+            <div style="padding: 16px;">
+                <div class="skeleton skeleton-block" style="height: 48px; margin-bottom: 12px; border-radius: 8px;"></div>
+                <div class="skeleton skeleton-block" style="height: 48px; margin-bottom: 12px; border-radius: 8px;"></div>
+                <div class="skeleton skeleton-block" style="height: 48px; border-radius: 8px;"></div>
             </div>
         </div>
         <div class="dropdown-footer">
@@ -793,7 +743,35 @@
         </div>
     </div>
 
-    <script src="config.js"></script>
-    <script src="script.js"></script>
+    <script src="config.js?v=2026-07-10-v1"></script>
+    <script src="script.js?v=2026-07-10-v1"></script>
+    <!-- Price Alert Modal -->
+    <div id="price-alert-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3>Set Price Alert</h3>
+                <button class="modal-close" id="close-alert-modal">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc" id="alert-modal-desc">Set limits for <strong id="alert-modal-material"></strong>. Current live price: <strong id="alert-modal-current"></strong></p>
+                
+                <div class="form-group">
+                    <label>Upper Price Limit (📈 Rise above)</label>
+                    <input type="number" id="alert-upper-input" placeholder="e.g. 50000" class="modal-input">
+                    <p class="form-hint" style="margin-top: 4px; margin-bottom: 0;">Leave blank to skip</p>
+                </div>
+
+                <div class="form-group" style="margin-top: 16px;">
+                    <label>Lower Price Limit (📉 Drop below)</label>
+                    <input type="number" id="alert-lower-input" placeholder="e.g. 45000" class="modal-input">
+                    <p class="form-hint" style="margin-top: 4px; margin-bottom: 0;">Leave blank to skip</p>
+                </div>
+                <div class="modal-actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="btn btn-outline" id="cancel-alert-btn">Cancel</button>
+                    <button class="btn btn-primary" id="save-alert-btn">Save Alert</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

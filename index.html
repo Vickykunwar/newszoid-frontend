@@ -6,14 +6,13 @@
     <title>Newszoid-Business Intelligence for Indian MSMEs</title>
     <meta name="description" content="Newszoid is India's leading AI business intelligence platform. Empower your MSME with real-time raw material rates, hyper-personalized industry news, and AI-driven procurement insights.">
     <meta name="theme-color" content="#060B18">
-    <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="icon" type="image/png" sizes="192x192" href="/logo-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/logo-192.png">
     <link rel="manifest" href="manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2026-07-10-v1">
+    <link rel="stylesheet" href="style.css?v=2026-07-27-intelligence-v1">
     
     <!-- Auto-Update Mechanism -->
     <script>
@@ -193,13 +192,13 @@
                     </div>
                     <div class="card-body">
                         <h2 class="briefing-title">Today's Intelligence for Your Business</h2>
-                        <ul class="briefing-list" id="briefing-container">
+                        <div class="briefing-list" id="briefing-container" aria-live="polite">
                             <div class="skeleton-news-item">
                                 <div class="skeleton-row"><div class="skeleton skeleton-circle"></div><div class="skeleton skeleton-text md"></div><div class="skeleton skeleton-text sm"></div></div>
                                 <div class="skeleton skeleton-headline"></div>
                                 <div class="skeleton skeleton-body short"></div>
                             </div>
-                        </ul>
+                        </div>
                     </div>
                     <div class="card-footer">
                         <div class="briefing-attribution">
@@ -438,10 +437,10 @@
             <div class="intelligence-header">
                 <h2 class="page-title">Intelligence</h2>
                 <div class="intelligence-filters">
-                    <button class="filter-btn active">For My Business</button>
-                    <button class="filter-btn">Sector Deep Dives</button>
-                    <button class="filter-btn">Policy & Regulatory</button>
-                    <button class="filter-btn">Global Trade</button>
+                    <button class="filter-btn active" type="button" data-intelligence-filter="business">For My Business</button>
+                    <button class="filter-btn" type="button" data-intelligence-filter="sector">Sector Deep Dives</button>
+                    <button class="filter-btn" type="button" data-intelligence-filter="policy">Policy & Regulatory</button>
+                    <button class="filter-btn" type="button" data-intelligence-filter="trade">Global Trade</button>
                 </div>
             </div>
             <div class="intelligence-feed" id="intelligence-feed">
@@ -564,6 +563,7 @@
                     <div class="card ws-card">
                         <div class="card-header">
                             <h3 class="card-title">My Business Profile</h3>
+                            <button class="btn btn-ghost btn-sm" id="authBtn" type="button">Sign in</button>
                         </div>
                         <div class="card-body">
                             <div class="profile-form">
@@ -743,8 +743,8 @@
         </div>
     </div>
 
-    <script src="config.js?v=2026-07-10-v1"></script>
-    <script src="script.js?v=2026-07-10-v1"></script>
+    <script src="config.js?v=2026-07-27-intelligence-v1"></script>
+    <script src="script.js?v=2026-07-27-intelligence-v1"></script>
     <!-- Price Alert Modal -->
     <div id="price-alert-modal" class="modal-overlay hidden">
         <div class="modal-content glass-panel">
@@ -771,6 +771,33 @@
                     <button class="btn btn-primary" id="save-alert-btn">Save Alert</button>
                 </div>
             </div>
+        </div>
+    </div>
+    <div id="auth-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3 id="auth-modal-title">Sign in to Newszoid</h3>
+                <button class="modal-close" id="close-auth-modal" type="button" aria-label="Close">×</button>
+            </div>
+            <p class="modal-desc" id="auth-modal-desc">Sign in to save a business profile securely.</p>
+            <form id="auth-form">
+                <div class="form-group" id="auth-name-group" hidden>
+                    <label for="auth-name">Your name</label>
+                    <input class="modal-input" id="auth-name" autocomplete="name" maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="auth-email">Email</label>
+                    <input class="modal-input" id="auth-email" type="email" autocomplete="email" required maxlength="254">
+                </div>
+                <div class="form-group" style="margin-top: 16px;">
+                    <label for="auth-password">Password</label>
+                    <input class="modal-input" id="auth-password" type="password" autocomplete="current-password" required minlength="12" maxlength="128">
+                </div>
+                <div class="modal-actions" style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button class="btn btn-ghost" id="auth-mode-toggle" type="button">Create account</button>
+                    <button class="btn btn-primary" id="auth-submit" type="submit">Sign in</button>
+                </div>
+            </form>
         </div>
     </div>
 </body>

@@ -1,6 +1,6 @@
-const CACHE_NAME = 'newszoid-v2026-07-12-favicon-v1';
-const OFFLINE_EDITION_CACHE = 'newszoid-offline-edition-v2026-07-12-favicon-v1';
-const PRECACHE_URLS = ['/', '/index.html', '/style.css?v=2026-07-10-v1', '/script.js?v=2026-07-10-v1', '/favicon.ico?v=2026-07-12', '/favicon.svg?v=2026-07-12', '/logo-icon.png', '/manifest.json'];
+const CACHE_NAME = 'newszoid-v2026-07-27-intelligence-v1';
+const OFFLINE_EDITION_CACHE = 'newszoid-offline-edition-v2026-07-27-intelligence-v1';
+const PRECACHE_URLS = ['/', '/index.html', '/style.css?v=2026-07-27-intelligence-v1', '/script.js?v=2026-07-27-intelligence-v1', '/logo-192.png', '/logo-icon.png', '/manifest.json'];
 
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -80,7 +80,7 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : { title: 'Newszoid', body: 'New update' };
-  const options = { body: data.body, icon: '/logo-icon.png', badge: '/logo-icon.png', data: data.url || '/' };
+  const options = { body: data.body, icon: '/logo-192.png', badge: '/logo-192.png', data: data.url || '/' };
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
 

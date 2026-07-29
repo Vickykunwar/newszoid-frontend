@@ -37,6 +37,8 @@
     profileResearchTimer: null,
     profileResearchKey: '',
     profileResearchResult: null,
+    intelligenceRequestId: 0,
+    intelligenceFeeds: {},
   };
 
   let profile = {
@@ -48,6 +50,25 @@
     items: ['MS Sheet', 'HR Coil', 'Copper Wire', 'Diesel', 'Cement OPC'],
     whatsapp: '',
   };
+
+  const AUTH_TOKEN_KEY = 'nz_auth_token';
+  const AUTH_USER_KEY = 'nz_auth_user';
+
+  function getAuthToken() {
+    return localStorage.getItem(AUTH_TOKEN_KEY) || '';
+  }
+
+  function authHeaders() {
+    const token = getAuthToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  function updateAuthButton() {
+    const button = $('#authBtn');
+    if (!button) return;
+    const user = safeStorage('get', AUTH_USER_KEY);
+    button.textContent = user?.name ? `Signed in: ${user.name.split(' ')[0]}` : 'Sign in';
+  }
 
   function loadProfile() {
     try {
@@ -81,6 +102,9 @@
     if (turnover) profile.turnover = turnover.value;
     profile.items = items;
 
+    const signedInUser = safeStorage('get', AUTH_USER_KEY);
+    if (getAuthToken() && signedInUser?.email) profile.email = signedInUser.email;
+
     const whatsappInput = $('#profileWhatsapp');
     if (whatsappInput) {
       // Strip everything except digits so wa.me gets a clean number.
@@ -100,7 +124,10 @@
     const turnover = $('#profileTurnover');
 
     if (name) name.value = profile.name === 'Vicky S.' || profile.name === 'Business Owner' ? '' : profile.name;
-    if (email) email.value = profile.email || '';
+    if (email) {
+      email.value = profile.email || '';
+      email.disabled = Boolean(getAuthToken());
+    }
     if (companyRole && profile.companyRole) companyRole.value = profile.companyRole;
     if (turnover && profile.turnover) turnover.value = profile.turnover;
     const whatsappInput = $('#profileWhatsapp');
@@ -1062,22 +1089,26 @@
   //   loadNews:  Backend API → Google News RSS → localStorage cache → skeletons
   // So the site always shows real data even if the backend is completely down.
   async function loadDashboardData() {
-    // Each loader renders its localStorage cache before its first await, so
-    // stale content is never replaced by a blank screen during refresh.
-    const briefTask = loadBrief(profile);
+    // Each data loader renders local cache before its first await. Generate
+    // the briefing only after both loaders settle so it uses current evidence
+    // instead of a stale snapshot captured at page load.
     const ratesTask = loadRatesWithFallback(profile);
     const newsTask = loadNewsWithFallback(profile);
+    await Promise.allSettled([ratesTask, newsTask]);
 
-    const briefState = await briefTask;
+    const briefState = await loadBrief(profile);
     const rssPriorityTask = briefState.suggestRssFallback
       ? refreshNewsFromRss(profile)
       : Promise.resolve(false);
 
-    await Promise.allSettled([ratesTask, newsTask, rssPriorityTask]);
+    await rssPriorityTask;
   }
 
   async function loadBrief(profile) {
     if (!API_BASE_URL) return { suggestRssFallback: false };
+
+    const briefing = $('#briefing-container');
+    if (briefing) briefing.dataset.aiLoaded = 'pending';
 
     const cachedRates = getRatesCache();
     const cachedNews = getNewsCache();
@@ -1090,11 +1121,9 @@
     try {
       const briefData = await fetchWithTimeout(`${API_BASE_URL}/api/brief`, briefProfile, 8000);
       if (briefData?.brief) {
-        const briefing = $('#briefing-container');
         if (briefing) {
-          // /api/brief sanitizes this small HTML allowlist before returning it.
-          briefing.innerHTML = briefData.brief;
-          briefing.dataset.aiLoaded = 'true';
+          renderBriefHtml(briefData.brief);
+          briefing.dataset.aiLoaded = 'complete';
         }
       }
       return {
@@ -1102,6 +1131,10 @@
       };
     } catch (error) {
       console.warn('[Brief] API failed:', error.message);
+      if (briefing) {
+        delete briefing.dataset.aiLoaded;
+        renderBriefing(briefProfile.recentNews);
+      }
       return { suggestRssFallback: false };
     }
   }
@@ -1147,7 +1180,7 @@
     const timeout = setTimeout(() => controller.abort(), ms);
     try {
       const opts = body
-        ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: controller.signal }
+        ? { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body), signal: controller.signal }
         : { signal: controller.signal };
       const res = await fetch(url, opts);
       if (!res.ok) throw new Error(`${url} returned ${res.status}`);
@@ -1182,6 +1215,46 @@
       rate => rate?.sourceVerified === true && rate?.verified === true
     );
     return verifiedRates.length ? { ...cached, rates: verifiedRates } : null;
+  }
+
+  // Live rates and stored price history are separate capabilities. If a
+  // source-verified quote cannot be loaded, replace the loading skeletons with
+  // a clear retry state so the Markets view never appears blank or stuck.
+  function renderRatesUnavailable() {
+    const message = 'Live material quotes are temporarily unavailable. Refresh to try again.';
+    const priceContainer = $('#price-container');
+    if (priceContainer) {
+      clearNode(priceContainer);
+      priceContainer.appendChild(textEl('div', 'dashboard-empty-state', message));
+    }
+
+    const materialList = $('.material-list');
+    if (materialList) {
+      clearNode(materialList);
+      materialList.appendChild(textEl('div', 'dashboard-empty-state', message));
+    }
+
+    const materialName = $('.material-name');
+    const materialLocation = $('.material-location');
+    const materialPrice = $('.material-price');
+    const materialChange = $('.material-change');
+    if (materialName) materialName.textContent = 'Market quotes unavailable';
+    if (materialLocation) materialLocation.textContent = 'Refresh to retry live sources';
+    if (materialPrice) materialPrice.textContent = '—';
+    if (materialChange) {
+      materialChange.className = 'material-change neutral';
+      materialChange.textContent = 'No live quote';
+    }
+
+    const chart = $('.chart-placeholder');
+    if (chart) {
+      clearNode(chart);
+      chart.appendChild(textEl('div', 'dashboard-empty-state', 'Price history will appear after a live quote is available.'));
+    }
+
+    const count = $('.material-count');
+    if (count) count.textContent = '0 live quotes available';
+    updateFreshness(false);
   }
 
   async function loadRatesWithFallback(profile) {
@@ -1220,12 +1293,7 @@
         expired: true,
       });
     } else {
-      showSkeletonWithRetry($('#price-container'), 'Waiting for live prices…', () => loadRatesWithFallback(profile));
-      showSkeletonWithRetry($('#material-detail'), 'Waiting for market detail…', () => loadRatesWithFallback(profile));
-      showSkeletonWithRetry($('.material-list'), 'Waiting for materials…', () => loadRatesWithFallback(profile));
-      const countEl = $('.material-count');
-      if (countEl) countEl.textContent = '0 items tracked';
-      updateFreshness(false);
+      renderRatesUnavailable();
     }
   }
 
@@ -1328,7 +1396,7 @@
     favicon.className = 'news-favicon';
     favicon.alt = item.source || 'News';
     favicon.src = `https://www.google.com/s2/favicons?domain=${sourceDomain(item.source)}&sz=32`;
-    favicon.addEventListener('error', () => { favicon.src = 'favicon.ico'; }, { once: true });
+    favicon.addEventListener('error', () => { favicon.src = 'logo-192.png'; }, { once: true });
 
     sourceRow.append(
       favicon,
@@ -1408,7 +1476,7 @@
     favicon.className = 'news-favicon';
     favicon.alt = item.source || 'News';
     favicon.src = `https://www.google.com/s2/favicons?domain=${sourceDomain(item.source)}&sz=32`;
-    favicon.addEventListener('error', () => { favicon.src = 'favicon.ico'; }, { once: true });
+    favicon.addEventListener('error', () => { favicon.src = 'logo-192.png'; }, { once: true });
 
     const relevance = computeRelevance(item);
     sourceRow.append(
@@ -1478,7 +1546,7 @@
     return card;
   }
 
-  function renderIntelligenceFeed(news) {
+  function renderIntelligenceFeed(news, statusText = '') {
     const feed = $('.intelligence-feed');
     if (!feed) return;
 
@@ -1486,6 +1554,7 @@
     const filtered = news.filter(item => !dismissed.includes(storyKey(item)));
 
     clearNode(feed);
+    if (statusText) feed.appendChild(textEl('div', 'intelligence-feed-status', statusText));
     if (!filtered.length) {
       feed.innerHTML = '<div style="padding: var(--space-4); text-align: center; color: var(--color-text-muted);">No stories available for this category right now.</div>';
       return;
@@ -1495,15 +1564,20 @@
 
   function applyIntelligenceFilter() {
     const activeBtn = document.querySelector('.intelligence-filters .filter-btn.active');
-    const filter = activeBtn ? activeBtn.textContent.trim() : 'For My Business';
+    const filter = activeBtn?.dataset.intelligenceFilter || 'business';
+    const loadedFeed = appState.intelligenceFeeds[filter];
+    if (loadedFeed?.length) {
+      renderIntelligenceFeed(loadedFeed, 'Updated from publisher-backed news');
+      return;
+    }
     
     let filtered = currentNewsData || [];
-    if (filter === 'Sector Deep Dives') {
+    if (filter === 'sector') {
       filtered = filtered.filter(item => item.category === 'INDUSTRY' || item.category === 'MARKET');
-    } else if (filter === 'Policy & Regulatory') {
+    } else if (filter === 'policy') {
       filtered = filtered.filter(item => item.category === 'POLICY' || item.category === 'GOVERNMENT');
-    } else if (filter === 'Global Trade') {
-      filtered = filtered.filter(item => item.category === 'GLOBAL' || String(item.headline).toLowerCase().includes('import') || String(item.headline).toLowerCase().includes('export') || String(item.headline).toLowerCase().includes('china'));
+    } else if (filter === 'trade') {
+      filtered = filtered.filter(item => item.category === 'TRADE' || String(item.headline).toLowerCase().includes('import') || String(item.headline).toLowerCase().includes('export') || String(item.headline).toLowerCase().includes('china'));
     }
 
     renderIntelligenceFeed(filtered);
@@ -1585,12 +1659,13 @@
   function renderBriefing(news) {
     const briefing = $('#briefing-container');
     if (!briefing) return;
+    if (briefing.dataset.aiLoaded === 'pending' || briefing.dataset.aiLoaded === 'complete') return;
 
     clearNode(briefing);
     news.slice(0, 4).forEach(item => {
-      const li = document.createElement('li');
-      li.className = 'briefing-item';
-      li.appendChild(textEl('span', 'briefing-bullet', ''));
+      const article = document.createElement('article');
+      article.className = 'briefing-item';
+      article.appendChild(textEl('span', 'briefing-bullet', ''));
 
       const content = document.createElement('div');
       content.className = 'briefing-content';
@@ -1598,12 +1673,130 @@
       strong.textContent = item.headline || 'Market update';
       content.append(strong, document.createTextNode(` — ${item.summary || item.signal || ''}`));
 
-      li.appendChild(content);
-      briefing.appendChild(li);
+      article.appendChild(content);
+      briefing.appendChild(article);
     });
   }
 
+  function renderBriefHtml(html) {
+    const briefing = $('#briefing-container');
+    if (!briefing) return;
+
+    const template = document.createElement('template');
+    template.innerHTML = String(html || '');
+    const nodes = Array.from(template.content.childNodes);
+    clearNode(briefing);
+
+    let section = null;
+    const ensureSection = () => {
+      if (section) return section;
+      section = document.createElement('section');
+      section.className = 'briefing-ai-section';
+      briefing.appendChild(section);
+      return section;
+    };
+
+    nodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) return;
+      if (node.nodeType === Node.ELEMENT_NODE && ['H2', 'H3'].includes(node.tagName)) {
+        section = document.createElement('section');
+        section.className = 'briefing-ai-section';
+        node.className = 'briefing-ai-heading';
+        section.appendChild(node);
+        briefing.appendChild(section);
+        return;
+      }
+      if (node.nodeType === Node.TEXT_NODE) {
+        ensureSection().appendChild(textEl('p', 'briefing-ai-copy', node.textContent.trim()));
+        return;
+      }
+      ensureSection().appendChild(node);
+    });
+
+    if (!briefing.childElementCount) {
+      const fallback = textEl('p', 'briefing-ai-copy', 'No verified briefing update is available yet.');
+      ensureSection().appendChild(fallback);
+    }
+  }
+
   // ── News caching helpers ──
+  // The briefing has its own API request, while the rest of the intelligence
+  // dashboard is powered by publisher-backed news. Always replace loading
+  // placeholders when that feed is unavailable; otherwise a successful brief
+  // can be displayed next to cards that appear to load forever.
+  function renderNewsUnavailable() {
+    currentNewsData = [];
+
+    const alertContainer = $('#alerts-container');
+    if (alertContainer) {
+      clearNode(alertContainer);
+      const empty = document.createElement('div');
+      empty.className = 'alert-item alert-info';
+      empty.appendChild(textEl('div', 'alert-content', 'Market alerts are temporarily unavailable.'));
+      alertContainer.appendChild(empty);
+    }
+
+    const opportunityContainer = $('#opportunities-container');
+    if (opportunityContainer) {
+      clearNode(opportunityContainer);
+      opportunityContainer.appendChild(
+        textEl('div', 'dashboard-empty-state', 'Opportunity signals will appear when the live feed returns.')
+      );
+    }
+
+    const newsContainer = $('#news-container');
+    if (newsContainer) {
+      clearNode(newsContainer);
+      newsContainer.appendChild(
+        textEl('div', 'dashboard-empty-state', 'Industry intelligence is temporarily unavailable. Refresh to try again.')
+      );
+    }
+
+    const recommendationContainer = $('#recommendations-container');
+    if (recommendationContainer) {
+      clearNode(recommendationContainer);
+      const recommendation = document.createElement('div');
+      recommendation.className = 'rec-item rec-item-muted';
+      recommendation.append(
+        textEl('div', 'rec-icon', 'i'),
+        textEl('div', 'rec-title', 'Recommendations are waiting for live news'),
+        textEl('div', 'rec-reason', 'Refresh to generate recommendations from current, source-backed updates.')
+      );
+      recommendationContainer.appendChild(recommendation);
+    }
+
+    const intelligenceFeed = $('.intelligence-feed');
+    if (intelligenceFeed) {
+      clearNode(intelligenceFeed);
+      intelligenceFeed.appendChild(
+        textEl('div', 'dashboard-empty-state', 'No industry stories are available right now. Please refresh shortly.')
+      );
+    }
+
+    const alertsFeed = $('#alerts-feed');
+    if (alertsFeed) {
+      clearNode(alertsFeed);
+      alertsFeed.appendChild(
+        textEl('div', 'dashboard-empty-state', 'No live market alerts are available right now. Please refresh shortly.')
+      );
+    }
+
+    const alertSummary = document.querySelector('.alert-summary');
+    if (alertSummary) {
+      clearNode(alertSummary);
+      alertSummary.appendChild(textEl('span', 'summary-badge info', 'Feed unavailable'));
+    }
+
+    const sourceCount = document.querySelector('.source-count');
+    if (sourceCount) sourceCount.textContent = 'Live sources unavailable';
+
+    const opportunityCount = document.querySelector('.opportunity-count');
+    if (opportunityCount) opportunityCount.textContent = '0 signals detected today';
+
+    const newsCount = $('.news-count');
+    if (newsCount) newsCount.textContent = 'Live feed temporarily unavailable';
+  }
+
   function cacheNews(items) {
     safeStorage('set', 'nz_news_cache', { items, savedAt: Date.now() });
   }
@@ -1617,14 +1810,16 @@
   // Calls our OWN backend's /api/news-proxy, which fetches Google News RSS
   // server-side, parses the XML, and sanitizes it. Replaces the old
   // rss2json.com third-party dependency.
-  async function fetchGoogleNewsRSS(profile) {
+  async function fetchGoogleNewsRSS(profile, options = {}) {
     if (!API_BASE_URL) return [];
     try {
       const params = new URLSearchParams({
         industry: profile.businessType || '',
         city: profile.city || '',
-        materials: (profile.items || []).join(' '),
+        materials: options.includeMaterials === false ? '' : (profile.items || []).join(' '),
       });
+      if (options.topic) params.set('topic', options.topic);
+      if (options.fresh) params.set('fresh', '1');
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), 10000);
       let response;
@@ -1697,6 +1892,52 @@
     return matches.length ? matches.join(', ') : 'General';
   }
 
+  const intelligenceTopics = {
+    business: { topic: 'latest market and business updates', label: 'For My Business', category: '' },
+    sector: { topic: 'sector analysis market outlook demand', label: 'Sector Deep Dives', category: 'INDUSTRY' },
+    policy: { topic: 'government policy regulation GST duty', label: 'Policy & Regulatory', category: 'POLICY' },
+    trade: { topic: 'global trade import export customs', label: 'Global Trade', category: 'TRADE' },
+  };
+
+  function renderIntelligenceLoading(label) {
+    const feed = $('.intelligence-feed');
+    if (!feed) return;
+    clearNode(feed);
+    feed.appendChild(textEl('div', 'intelligence-feed-status', `Refreshing ${label} from publisher-backed news…`));
+    for (let i = 0; i < 3; i += 1) {
+      const card = document.createElement('div');
+      card.className = 'card intel-card intelligence-loading-card';
+      card.innerHTML = '<div class="skeleton skeleton-text sm"></div><div class="skeleton skeleton-headline"></div><div class="skeleton skeleton-text md"></div>';
+      feed.appendChild(card);
+    }
+  }
+
+  async function refreshIntelligenceFeed(filter) {
+    const config = intelligenceTopics[filter] || intelligenceTopics.business;
+    const requestId = ++appState.intelligenceRequestId;
+    renderIntelligenceLoading(config.label);
+
+    const stories = await fetchGoogleNewsRSS(profile, {
+      topic: config.topic,
+      includeMaterials: filter === 'business',
+      fresh: true,
+    });
+    if (requestId !== appState.intelligenceRequestId) return;
+
+    if (stories.length) {
+      const categorized = stories.map(story => ({
+        ...story,
+        category: config.category || story.category || 'INDUSTRY',
+      }));
+      appState.intelligenceFeeds[filter] = categorized;
+      renderIntelligenceFeed(categorized, `${config.label} • refreshed just now`);
+      return;
+    }
+
+    delete appState.intelligenceFeeds[filter];
+    applyIntelligenceFilter();
+  }
+
   function refreshNewsFromRss(profile) {
     if (rssRefreshTask) return rssRefreshTask;
 
@@ -1746,10 +1987,7 @@
         warning: true,
       });
     } else {
-      showSkeletonWithRetry($('#news-container'), 'Waiting for live news…', () => loadNewsWithFallback(profile));
-      showSkeletonWithRetry($('#briefing-container'), 'Waiting for briefing…', () => loadNewsWithFallback(profile));
-      showSkeletonWithRetry($('#alerts-feed'), 'Waiting for alerts…', () => loadNewsWithFallback(profile));
-      showSkeletonWithRetry($('.intelligence-feed'), 'Waiting for intelligence…', () => loadNewsWithFallback(profile));
+      renderNewsUnavailable();
     }
   }
 
@@ -2740,11 +2978,11 @@
 
   function setupButtons() {
     $$('.filter-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         $$('.filter-btn').forEach(item => item.classList.remove('active'));
         btn.classList.add('active');
         btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        applyIntelligenceFilter();
+        await refreshIntelligenceFeed(btn.dataset.intelligenceFilter || 'business');
       });
     });
 
@@ -2758,10 +2996,22 @@
           });
           showToast('All alerts marked read.');
         });
-      } else if (label === 'Save Changes') {
-        btn.addEventListener('click', () => {
-          saveProfileToStorage();
-          showToast('Profile saved! Dashboard will refresh with your updated profile.');
+        } else if (label === 'Save Changes') {
+          btn.addEventListener('click', async () => {
+            saveProfileToStorage();
+            if (!getAuthToken()) {
+              showToast('Sign in before saving your profile to Newszoid.');
+              openAuthModal('signup');
+              return;
+            }
+            try {
+              await fetchWithTimeout(`${API_BASE_URL}/api/biz-agent/profile`, profile, 8000);
+            } catch (error) {
+              console.warn('Profile sync failed:', error);
+              showToast('Your local profile was saved, but secure sync failed. Please sign in again.');
+              return;
+            }
+            showToast('Profile saved! Dashboard will refresh with your updated profile.');
           populateProfileForm();
           // Reload data with new profile (parallel + skeletons)
           loadDashboardData();
@@ -2827,6 +3077,77 @@
     });
   }
 
+  let authMode = 'login';
+
+  function openAuthModal(mode = 'login') {
+    authMode = mode;
+    const modal = $('#auth-modal');
+    if (!modal) return;
+    const signup = authMode === 'signup';
+    $('#auth-modal-title').textContent = signup ? 'Create your Newszoid account' : 'Sign in to Newszoid';
+    $('#auth-modal-desc').textContent = signup
+      ? 'Create an account to save your business profile securely.'
+      : 'Sign in to save and access your business profile securely.';
+    $('#auth-name-group').hidden = !signup;
+    $('#auth-name').required = signup;
+    $('#auth-password').autocomplete = signup ? 'new-password' : 'current-password';
+    $('#auth-mode-toggle').textContent = signup ? 'I already have an account' : 'Create account';
+    $('#auth-submit').textContent = signup ? 'Create account' : 'Sign in';
+    $('#auth-email').value = profile.email || safeStorage('get', AUTH_USER_KEY)?.email || '';
+    modal.classList.remove('hidden');
+    $('#auth-email').focus();
+  }
+
+  function closeAuthModal() {
+    $('#auth-modal')?.classList.add('hidden');
+  }
+
+  function setupAuth() {
+    $('#authBtn')?.addEventListener('click', () => {
+      if (getAuthToken()) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
+        updateAuthButton();
+        populateProfileForm();
+        showToast('Signed out.');
+        return;
+      }
+      openAuthModal('login');
+    });
+    $('#close-auth-modal')?.addEventListener('click', closeAuthModal);
+    $('#auth-mode-toggle')?.addEventListener('click', () => openAuthModal(authMode === 'login' ? 'signup' : 'login'));
+    $('#auth-form')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const payload = {
+        email: $('#auth-email').value.trim(),
+        password: $('#auth-password').value,
+      };
+      if (authMode === 'signup') payload.name = $('#auth-name').value.trim();
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/auth/${authMode === 'signup' ? 'signup' : 'login'}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.token || !data.user) throw new Error(data.error || 'Authentication failed');
+        localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+        safeStorage('set', AUTH_USER_KEY, data.user);
+        profile.email = data.user.email;
+        if (!profile.name || profile.name === 'Vicky S.' || profile.name === 'Business Owner') profile.name = data.user.name;
+        saveProfileToStorage();
+        populateProfileForm();
+        updateAuthButton();
+        closeAuthModal();
+        showToast(`Signed in as ${data.user.name}.`);
+        loadDashboardData();
+      } catch (error) {
+        showToast(error.message || 'Could not sign in.');
+      }
+    });
+  }
+
   function setupCardMenus() {
     $$('.card-menu').forEach(btn => {
       btn.setAttribute('aria-label', 'Card options');
@@ -2858,9 +3179,11 @@
     setupHorizontalSliders();
     setupWorkspace();
     setupButtons();
+    setupAuth();
     setupCardMenus();
     updateQueryCount();
     populateProfileForm();
+    updateAuthButton();
     setupProfileResearch();
     initAiGreeting();
     registerServiceWorker();

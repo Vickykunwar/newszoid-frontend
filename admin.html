@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090d18">
+  <meta name="description" content="Newszoid administration dashboard">
+  <title>Newszoid · Admin</title>
+  <link rel="icon" type="image/png" href="logo-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="index.html" aria-label="Open Newszoid workspace">
+        <span class="brand-mark"><img src="logo-icon.png" alt=""></span>
+        <span>News<span>zoid</span><small>ADMIN</small></span>
+      </a>
+
+      <nav class="side-nav" aria-label="Admin navigation">
+        <p class="nav-heading">Command center</p>
+        <button class="nav-link active" data-panel="overview" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          Overview
+        </button>
+        <button class="nav-link" data-panel="users" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Users <span class="nav-count">24</span>
+        </button>
+        <button class="nav-link" data-panel="content" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v14H3z"/><path d="m7 21 2-4h6l2 4M8 7h8M8 11h5"/></svg>
+          Content health
+        </button>
+        <button class="nav-link" data-panel="alerts" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4"/></svg>
+          Alerts <span class="nav-alert">3</span>
+        </button>
+        <p class="nav-heading lower">System</p>
+        <button class="nav-link" data-panel="activity" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>
+          Audit activity
+        </button>
+        <button class="nav-link" data-panel="settings" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56v.08h-3v-.08A1.7 1.7 0 0 0 10.66 18.7a1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15.04a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.96a1.7 1.7 0 0 0-.34-1.88L6.6 8.02 8.72 5.9l.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 11.7 4.74v-.08h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 20.96 11h.08v3h-.08A1.7 1.7 0 0 0 19.4 15Z"/></svg>
+          Settings
+        </button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="environment"><i></i><span>Production</span></div>
+        <div class="admin-person"><span class="person-avatar">VK</span><span><strong>Vicky Kunwar</strong><small>Super admin</small></span><button type="button" title="Admin menu" aria-label="Admin menu">•••</button></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="menu-button" id="menuButton" type="button" aria-label="Open navigation"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <div class="crumb"><span>Newszoid</span><b>/</b><strong id="crumbTitle">Overview</strong></div>
+        <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg><input id="globalSearch" type="search" placeholder="Search users, alerts, events…"><kbd>⌘ K</kbd></label>
+        <button class="top-icon" id="notificationButton" type="button" aria-label="View alerts"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4"/></svg><span></span></button>
+        <div class="top-profile"><span>VK</span><i></i></div>
+      </header>
+
+      <section class="content" id="panel-overview">
+        <div class="page-intro">
+          <div><p class="eyebrow">TUESDAY, 29 JULY 2026</p><h1>Good morning, Vicky.</h1><p class="muted">Here’s how Newszoid is operating right now.</p></div>
+          <div class="actions"><button class="btn ghost" id="exportButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Export report</button><button class="btn primary" id="inviteButton" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Invite admin</button></div>
+        </div>
+
+        <div class="status-banner"><span class="pulse"></span><div><strong>All core systems operational</strong><small>Rates, news intelligence, authentication and brief generation are responding normally.</small></div><button class="quiet-button" data-panel-target="content" type="button">View system health <span>→</span></button></div>
+
+        <div class="metric-grid">
+          <article class="metric-card"><div class="metric-top"><span class="metric-icon users"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><span class="trend up">↑ 12.4%</span></div><p>Total users</p><strong>2,847</strong><small>+314 this month</small></article>
+          <article class="metric-card"><div class="metric-top"><span class="metric-icon business"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M8 10h.01M12 10h.01M16 10h.01"/></svg></span><span class="trend up">↑ 8.1%</span></div><p>Active businesses</p><strong>1,976</strong><small>69.4% profile completion</small></article>
+          <article class="metric-card"><div class="metric-top"><span class="metric-icon ai"><svg viewBox="0 0 24 24"><path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8L19 16Z"/></svg></span><span class="trend down">↓ 4.7%</span></div><p>AI requests today</p><strong>18,492</strong><small>97.8% completed successfully</small></article>
+          <article class="metric-card"><div class="metric-top"><span class="metric-icon source"><svg viewBox="0 0 24 24"><path d="M4 19V5M8 19v-8M12 19V8M16 19v-4M20 19V3"/></svg></span><span class="trend up">↑ 0.6%</span></div><p>Source coverage</p><strong>94.8<span>%</span></strong><small>of monitored feeds healthy</small></article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel activity-panel"><div class="panel-head"><div><p class="eyebrow">GROWTH</p><h2>Weekly activity</h2></div><button class="select-button" type="button">Last 7 days <span>⌄</span></button></div><div class="chart-summary"><div><strong>8,243</strong><span>Weekly active users</span></div><span class="trend up">↑ 16.2% vs. previous week</span></div><div class="activity-chart" aria-label="Weekly active users chart"><div class="chart-labels"><span>1.8k</span><span>1.2k</span><span>600</span><span>0</span></div><div class="chart-bars"><i style="--height:47%"><b>Mon</b></i><i style="--height:64%"><b>Tue</b></i><i style="--height:52%"><b>Wed</b></i><i style="--height:78%"><b>Thu</b></i><i style="--height:71%"><b>Fri</b></i><i style="--height:40%"><b>Sat</b></i><i class="today" style="--height:86%"><em>1,642</em><b>Today</b></i></div></div></article>
+          <article class="panel service-panel"><div class="panel-head"><div><p class="eyebrow">LIVE MONITORING</p><h2>Service health</h2></div><button class="more" type="button" aria-label="More service details">•••</button></div><ul class="service-list"><li><span class="service-logo rates">R</span><div><strong>Rates engine</strong><small>Median response: 482ms</small></div><span class="service-state healthy">Operational</span></li><li><span class="service-logo news">N</span><div><strong>News intelligence</strong><small>Median response: 694ms</small></div><span class="service-state healthy">Operational</span></li><li><span class="service-logo auth">A</span><div><strong>Authentication</strong><small>Median response: 118ms</small></div><span class="service-state healthy">Operational</span></li><li><span class="service-logo brief">B</span><div><strong>Brief generation</strong><small>1 provider needs review</small></div><span class="service-state review">Attention</span></li></ul><button class="panel-footer" data-panel-target="content" type="button">Open monitoring center <span>→</span></button></article>
+        </div>
+
+        <div class="lower-grid">
+          <article class="panel users-panel"><div class="panel-head"><div><p class="eyebrow">LATEST ACCOUNTS</p><h2>New users</h2></div><button class="text-button" data-panel-target="users" type="button">View all <span>→</span></button></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Business</th><th>Joined</th><th>Status</th><th></th></tr></thead><tbody id="newUsersTable"><tr><td><span class="avatar orange">AS</span><span><strong>Aman Sharma</strong><small>aman@sharmaindustries.in</small></span></td><td>Steel trading</td><td>12 min ago</td><td><span class="status active">Active</span></td><td><button class="row-action" type="button" aria-label="Manage Aman Sharma">•••</button></td></tr><tr><td><span class="avatar violet">PM</span><span><strong>Priya Mehta</strong><small>priya@mehtabuilders.com</small></span></td><td>Construction</td><td>41 min ago</td><td><span class="status active">Active</span></td><td><button class="row-action" type="button" aria-label="Manage Priya Mehta">•••</button></td></tr><tr><td><span class="avatar blue">RK</span><span><strong>Rahul Kumar</strong><small>rahul@rkfabrics.in</small></span></td><td>Textiles</td><td>1 hr ago</td><td><span class="status pending">Pending</span></td><td><button class="row-action" type="button" aria-label="Manage Rahul Kumar">•••</button></td></tr></tbody></table></div></article>
+          <article class="panel alerts-panel"><div class="panel-head"><div><p class="eyebrow">REQUIRES REVIEW</p><h2>Attention queue <span class="queue-count">3</span></h2></div><button class="more" type="button" aria-label="More alert actions">•••</button></div><div class="attention-list"><button class="attention-item" type="button"><span class="attention-icon amber">!</span><span><strong>Source coverage dropped below 90%</strong><small>2 sources in cement category are unavailable</small></span><i>12m</i></button><button class="attention-item" type="button"><span class="attention-icon red">!</span><span><strong>Elevated login failures</strong><small>18 failed attempts from a single IP range</small></span><i>28m</i></button><button class="attention-item" type="button"><span class="attention-icon purple">✦</span><span><strong>AI fallback usage is elevated</strong><small>Groq fallback was used 14 times today</small></span><i>1h</i></button></div><button class="panel-footer" data-panel-target="alerts" type="button">Review all alerts <span>→</span></button></article>
+        </div>
+      </section>
+
+      <section class="content hidden-panel" id="panel-users"><div class="page-intro"><div><p class="eyebrow">ACCESS MANAGEMENT</p><h1>Users</h1><p class="muted">Review account status and business profile adoption.</p></div><button class="btn primary" id="addUserButton" type="button">Add user</button></div><article class="panel users-directory"><div class="directory-tools"><label class="directory-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg><input id="userSearch" placeholder="Search by name or email"></label><div class="filter-group"><button class="filter active" data-filter="all" type="button">All <b>2,847</b></button><button class="filter" data-filter="active" type="button">Active <b>2,534</b></button><button class="filter" data-filter="pending" type="button">Pending <b>313</b></button></div></div><div class="table-wrap"><table class="directory-table"><thead><tr><th>User</th><th>Role</th><th>Business type</th><th>Last active</th><th>Account</th><th></th></tr></thead><tbody id="directoryTable"><tr data-status="active"><td><span class="avatar orange">AS</span><span><strong>Aman Sharma</strong><small>aman@sharmaindustries.in</small></span></td><td>Member</td><td>Steel trading</td><td>Just now</td><td><span class="status active">Active</span></td><td><button class="row-action" type="button">Manage</button></td></tr><tr data-status="active"><td><span class="avatar violet">PM</span><span><strong>Priya Mehta</strong><small>priya@mehtabuilders.com</small></span></td><td>Member</td><td>Construction</td><td>18 min ago</td><td><span class="status active">Active</span></td><td><button class="row-action" type="button">Manage</button></td></tr><tr data-status="pending"><td><span class="avatar blue">RK</span><span><strong>Rahul Kumar</strong><small>rahul@rkfabrics.in</small></span></td><td>Member</td><td>Textiles</td><td>—</td><td><span class="status pending">Pending</span></td><td><button class="row-action" type="button">Manage</button></td></tr><tr data-status="active"><td><span class="avatar teal">SD</span><span><strong>Sneha Desai</strong><small>sneha@desaiworks.in</small></span></td><td>Member</td><td>Manufacturing</td><td>2 hrs ago</td><td><span class="status active">Active</span></td><td><button class="row-action" type="button">Manage</button></td></tr></tbody></table></div></article></section>
+
+      <section class="content hidden-panel placeholder-panel" id="panel-content"><p class="eyebrow">LIVE MONITORING</p><h1>Content health</h1><p class="muted">Operational detail for sources, AI providers, and feed delivery appears here.</p><div class="placeholder-cards"><article class="panel"><span class="attention-icon amber">!</span><h2>2 source checks need review</h2><p>Latest checks indicate two cement sources have not returned parsable pricing data.</p><button class="btn ghost" type="button">Open source checks</button></article><article class="panel"><span class="attention-icon purple">✦</span><h2>AI provider fallback</h2><p>Monitor request success, fallback share, and typical response time by provider.</p><button class="btn ghost" type="button">Inspect provider activity</button></article></div></section>
+      <section class="content hidden-panel placeholder-panel" id="panel-alerts"><p class="eyebrow">INCIDENTS</p><h1>Alerts</h1><p class="muted">Review and acknowledge priority operational signals.</p><div class="placeholder-cards"><article class="panel"><span class="attention-icon red">!</span><h2>3 items await acknowledgement</h2><p>Assign each incident to an administrator after confirming the relevant logs.</p><button class="btn primary" type="button">Acknowledge selected</button></article></div></section>
+      <section class="content hidden-panel placeholder-panel" id="panel-activity"><p class="eyebrow">AUDITABILITY</p><h1>Audit activity</h1><p class="muted">Administrative actions will be recorded here when the admin API is connected.</p></section>
+      <section class="content hidden-panel placeholder-panel" id="panel-settings"><p class="eyebrow">CONFIGURATION</p><h1>Settings</h1><p class="muted">Configure roles, alert routing, and source-monitoring policies.</p></section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="admin.js"></script>
+</body>
+</html>

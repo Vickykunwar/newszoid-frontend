@@ -7,6 +7,11 @@
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
   const API_BASE_URL = (window.NEWSZOID_CONFIG?.API_BASE_URL || '').replace(/\/$/, '');
+  // Fresh source-verified quotes can take longer than a normal API call: the
+  // backend performs a search plus source checks before returning a rate.
+  // Keep this below the platform limit, but above the observed live response
+  // time so Markets does not discard a valid response as a client timeout.
+  const RATE_REQUEST_TIMEOUT_MS = 30000;
 
   const viewNames = {
     dashboard: 'Command Center',
@@ -39,15 +44,16 @@
     profileResearchResult: null,
     intelligenceRequestId: 0,
     intelligenceFeeds: {},
+    rateRequestId: 0,
   };
 
   let profile = {
-    name: 'Vicky S.',
+    name: '',
     email: '',
-    companyRole: 'Manufacturer',
-    businessType: 'Iron & Sheet Metal',
-    city: 'Haridwar',
-    items: ['MS Sheet', 'HR Coil', 'Copper Wire', 'Diesel', 'Cement OPC'],
+    companyRole: '',
+    businessType: '',
+    city: '',
+    items: [],
     whatsapp: '',
   };
 
@@ -75,7 +81,16 @@
       const saved = localStorage.getItem('nz_biz_profile');
       if (saved) {
         const parsed = JSON.parse(saved);
-        profile = { ...profile, ...parsed };
+        const isLegacyDemoProfile =
+          !parsed?.email &&
+          parsed?.name === 'Vicky S.' &&
+          parsed?.businessType === 'Iron & Sheet Metal' &&
+          parsed?.city === 'Haridwar';
+        if (isLegacyDemoProfile) {
+          localStorage.removeItem('nz_biz_profile');
+        } else {
+          profile = { ...profile, ...parsed };
+        }
       }
     } catch (e) {
       console.warn('Could not load saved profile:', e);
@@ -123,24 +138,17 @@
     const location = $('#profileLocation');
     const turnover = $('#profileTurnover');
 
-    if (name) name.value = profile.name === 'Vicky S.' || profile.name === 'Business Owner' ? '' : profile.name;
+    if (name) name.value = profile.name || '';
     if (email) {
       email.value = profile.email || '';
       email.disabled = Boolean(getAuthToken());
     }
-    if (companyRole && profile.companyRole) companyRole.value = profile.companyRole;
-    if (turnover && profile.turnover) turnover.value = profile.turnover;
+    if (companyRole) companyRole.value = profile.companyRole || '';
+    if (turnover) turnover.value = profile.turnover || '';
     const whatsappInput = $('#profileWhatsapp');
     if (whatsappInput) whatsappInput.value = profile.whatsapp || '';
 
-    if (industry) {
-      for (const opt of industry.options) {
-        if (opt.value === profile.businessType || opt.textContent === profile.businessType) {
-          opt.selected = true;
-          break;
-        }
-      }
-    }
+    if (industry) industry.value = profile.businessType || '';
     if (location) {
       location.value = profile.city;
     }
@@ -148,7 +156,11 @@
 
     // Update the subtitle that shows "For: Industry • City"
     const subtitle = $('.card-subtitle');
-    if (subtitle) subtitle.textContent = `For: ${profile.businessType} • ${profile.city}`;
+    if (subtitle) {
+      subtitle.textContent = profile.businessType && profile.city
+        ? `For: ${profile.businessType} • ${profile.city}`
+        : 'Complete your profile to personalise this dashboard.';
+    }
 
     // Update avatars
     const sidebarAvatar = $('#sidebarAvatarImg');
@@ -159,12 +171,14 @@
     const headerAvatarBtn = $('#headerAvatarBtn');
     if (headerAvatarBtn && profile.name) {
       const initials = profile.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-      headerAvatarBtn.textContent = initials || 'VS';
+      headerAvatarBtn.textContent = initials || '?';
     }
     const sidebarUserName = $('.user-name');
     if (sidebarUserName && profile.name) {
       sidebarUserName.textContent = profile.name;
     }
+
+    updateBriefingContext();
   }
 
   function getTrackedItems() {
@@ -472,6 +486,62 @@
         month: 'long',
         year: 'numeric',
       });
+    }
+  }
+
+  function getTimeGreeting(now = new Date()) {
+    const hour = now.getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  function updateBriefingContext() {
+    const title = $('#briefing-title');
+    const context = $('#briefing-context');
+    const firstName = String(profile.name || '').trim().split(/\s+/)[0];
+
+    if (title) {
+      title.textContent = firstName
+        ? `${getTimeGreeting()}, ${firstName}. Here is what needs your attention.`
+        : 'Your 60-second business brief';
+    }
+
+    if (context) {
+      context.textContent = profile.businessType && profile.city
+        ? `Today’s rates, market signals, and next action for your ${profile.businessType} business in ${profile.city}.`
+        : 'Set up your business profile for material-specific rates, signals, and actions.';
+    }
+
+    updateBriefingTrust();
+  }
+
+  function updateBriefingTrust({ stale = false } = {}) {
+    const sourceCount = $('#briefing-source-count');
+    const freshness = $('#briefing-freshness');
+    const rateSources = new Set(
+      (appState.currentRates || [])
+        .map(rate => rate?.sourceName || rate?.source || rate?.sourceUrl || '')
+        .filter(Boolean)
+    );
+    const newsSources = new Set(
+      (currentNewsData || []).map(item => item?.source || '').filter(Boolean)
+    );
+    const totalSources = rateSources.size + newsSources.size;
+
+    if (sourceCount) {
+      sourceCount.textContent = totalSources
+        ? `${totalSources} current source${totalSources === 1 ? '' : 's'} reviewed`
+        : 'Source details appear as data arrives';
+    }
+
+    if (freshness) {
+      freshness.classList.toggle('stale', stale);
+      freshness.textContent = stale
+        ? 'Using saved source data'
+        : totalSources
+          ? 'Updated from current sources'
+          : 'Checking current sources';
     }
   }
 
@@ -813,7 +883,7 @@
       if (points.length) {
         // Make sure the most recent point matches the current live rate.
         points[points.length - 1].rate = rate.rate;
-        return points;
+        return points.slice(-7);
       }
     }
 
@@ -821,6 +891,25 @@
     // fabricate a fake 7-day curve.
     const today = new Date().toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
     return rate.rate > 0 ? [{ date: today, rate: rate.rate, source: rate.sourceName || '' }] : [];
+  }
+
+  function mergeStoredRateHistory(rates, storedRates) {
+    if (!Array.isArray(rates) || !rates.length || !Array.isArray(storedRates) || !storedRates.length) {
+      return Array.isArray(rates) ? rates : [];
+    }
+
+    const historyByMaterial = new Map(
+      storedRates.map(rate => [String(rate.material || '').trim().toLowerCase(), rate])
+    );
+
+    return rates.map(rate => {
+      const stored = historyByMaterial.get(String(rate.material || '').trim().toLowerCase());
+      const liveHistoryLength = Array.isArray(rate.history) ? rate.history.length : 0;
+      const storedHistoryLength = Array.isArray(stored?.history) ? stored.history.length : 0;
+      return stored && storedHistoryLength > liveHistoryLength
+        ? { ...rate, history: stored.history }
+        : rate;
+    });
   }
 
   // Backward-compatible alias kept for any callers; delegates to real data.
@@ -840,7 +929,13 @@
       return;
     }
     if (data.length === 1) {
-      chartPlaceholder.innerHTML = `<div style="text-align:center; padding: var(--space-5); color: var(--color-text-muted); font-size: 0.8rem;">First live snapshot: <strong style="color: var(--color-text-primary)">${formatMoney(data[0].rate)}</strong> on ${data[0].date}.<br>Trend chart builds as more daily snapshots are saved.</div>`;
+      chartPlaceholder.innerHTML = `
+        <svg style="height:72px" viewBox="0 0 400 120" preserveAspectRatio="none" role="img" aria-label="One verified price snapshot">
+          <line x1="0" y1="70" x2="400" y2="70" stroke="#1F2937" stroke-width="0.5" stroke-dasharray="4"/>
+          <circle cx="200" cy="70" r="6" fill="#6B7280" stroke="#0D1321" stroke-width="2"/>
+        </svg>
+        <div class="chart-labels"><span>${data[0].date}</span></div>
+        <p class="chart-status">${formatMoney(data[0].rate)} is the first verified snapshot. The 7-day trend will grow as daily snapshots are saved.</p>`;
       return;
     }
 
@@ -881,8 +976,37 @@
         }).join('')}
       </svg>
       <div class="chart-labels">
-        ${data.filter((_, i) => i % 2 === 0 || i === last).map(d => `<span>${d.date}</span>`).join('')}
+        ${data.map(d => `<span>${d.date}</span>`).join('')}
       </div>`;
+  }
+
+  function renderRateHistory(rate) {
+    const container = $('#rate-history');
+    if (!container) return;
+
+    const data = buildHistoryData(rate);
+    clearNode(container);
+
+    if (data.length < 2) {
+      container.appendChild(
+        textEl(
+          'div',
+          'rate-history-empty',
+          'Price history is building. Previous days appear here after saved daily snapshots are available.'
+        )
+      );
+      return;
+    }
+
+    data.forEach((point, index) => {
+      const entry = document.createElement('div');
+      entry.className = `rate-history-point${index === data.length - 1 ? ' current' : ''}`;
+      entry.append(
+        textEl('span', 'rate-history-date', point.date || 'Saved snapshot'),
+        textEl('span', 'rate-history-price', formatMoney(point.rate))
+      );
+      container.appendChild(entry);
+    });
   }
 
   function setActiveRate(rate) {
@@ -926,6 +1050,7 @@
 
     // Render dynamic chart from real history
     renderDynamicChart(rate);
+    renderRateHistory(rate);
     // Show the saved alert target for this material (if any).
     refreshPriceAlertStatus(rate.material);
   }
@@ -1222,16 +1347,26 @@
   // a clear retry state so the Markets view never appears blank or stuck.
   function renderRatesUnavailable() {
     const message = 'Live material quotes are temporarily unavailable. Refresh to try again.';
+    const createRetryButton = () => {
+      const button = document.createElement('button');
+      button.className = 'btn btn-secondary';
+      button.type = 'button';
+      button.textContent = 'Retry live quotes';
+      button.addEventListener('click', retryAllData);
+      return button;
+    };
     const priceContainer = $('#price-container');
     if (priceContainer) {
       clearNode(priceContainer);
       priceContainer.appendChild(textEl('div', 'dashboard-empty-state', message));
+      priceContainer.appendChild(createRetryButton());
     }
 
     const materialList = $('.material-list');
     if (materialList) {
       clearNode(materialList);
       materialList.appendChild(textEl('div', 'dashboard-empty-state', message));
+      materialList.appendChild(createRetryButton());
     }
 
     const materialName = $('.material-name');
@@ -1251,26 +1386,66 @@
       clearNode(chart);
       chart.appendChild(textEl('div', 'dashboard-empty-state', 'Price history will appear after a live quote is available.'));
     }
+    const history = $('#rate-history');
+    if (history) {
+      clearNode(history);
+      history.appendChild(textEl('div', 'rate-history-empty', 'No saved price history is available yet.'));
+    }
 
     const count = $('.material-count');
     if (count) count.textContent = '0 live quotes available';
     updateFreshness(false);
   }
 
+  async function loadStoredRateHistory(profile) {
+    if (!API_BASE_URL) return [];
+
+    try {
+      const result = await fetchWithTimeout(
+        `${API_BASE_URL}/api/biz-agent/rate-history`,
+        { ...profile, days: 7 },
+        8000
+      );
+      return (Array.isArray(result?.histories) ? result.histories : [])
+        .filter(rate => Number.isFinite(Number(rate?.currentPrice)) && Number(rate.currentPrice) > 0)
+        .map(normalizeRate);
+    } catch (error) {
+      console.log('[Rates] Stored history fallback failed:', error.message);
+      return [];
+    }
+  }
+
   async function loadRatesWithFallback(profile) {
+    const requestId = ++appState.rateRequestId;
     let rates = [];
     const cached = getRatesCache();
+    // Read the last server-saved snapshots in parallel with a fresh quote
+    // request. This makes the fallback immediate when a provider is slow or
+    // temporarily unavailable.
+    const historyTask = loadStoredRateHistory(profile);
     if (cached?.rates?.length) {
       renderRatesUI(cached.rates, { stale: true, cachedAt: cached.savedAt });
     }
 
     if (API_BASE_URL) {
       try {
-        const backendRates = await fetchWithTimeout(`${API_BASE_URL}/api/biz-agent/rates`, profile, 12000);
+        const backendRates = await fetchWithTimeout(
+          `${API_BASE_URL}/api/biz-agent/rates`,
+          profile,
+          RATE_REQUEST_TIMEOUT_MS
+        );
         if (backendRates?.rates?.length) {
           rates = backendRates.rates.map(normalizeRate);
           cacheRates(rates);
           renderRatesUI(rates);
+          historyTask.then(historyRates => {
+            if (requestId !== appState.rateRequestId) return;
+            const hydratedRates = mergeStoredRateHistory(rates, historyRates);
+            if (hydratedRates.some((rate, index) => rate.history !== rates[index].history)) {
+              cacheRates(hydratedRates);
+              renderRatesUI(hydratedRates);
+            }
+          });
           return;
         }
       } catch (e) {
@@ -1279,25 +1454,37 @@
     }
 
     const cacheAgeHours = cached ? (Date.now() - cached.savedAt) / 3600000 : Infinity;
-    if (cached?.rates?.length && cacheAgeHours < 24) {
-      renderRatesUI(cached.rates, {
+    const historyRates = await historyTask;
+    const cachedRates = mergeStoredRateHistory(cached?.rates || [], historyRates);
+    if (cachedRates.length && cacheAgeHours < 24) {
+      renderRatesUI(cachedRates, {
         stale: true,
         cachedAt: cached.savedAt,
         warning: true,
       });
-    } else if (cached?.rates?.length) {
-      renderRatesUI(cached.rates, {
+    } else if (cachedRates.length) {
+      renderRatesUI(cachedRates, {
         stale: true,
         cachedAt: cached.savedAt,
         warning: true,
         expired: true,
       });
     } else {
-      renderRatesUnavailable();
+      if (historyRates.length) {
+        renderRatesUI(historyRates, { stale: true, warning: true });
+        showToast('Live quotes are unavailable. Showing the latest saved verified snapshots.');
+      } else {
+        renderRatesUnavailable();
+      }
     }
   }
 
   function renderRatesUI(rates, state = {}) {
+    if (!Array.isArray(rates) || !rates.length) {
+      renderRatesUnavailable();
+      return;
+    }
+
     const options = typeof state === 'boolean' ? { stale: state } : state;
     const { stale = false, cachedAt, warning = false, expired = false } = options;
     appState.currentRates = rates;
@@ -1311,6 +1498,7 @@
     } else {
       updateFreshness(false);
     }
+    updateBriefingTrust({ stale });
 
     const header = document.querySelector('.rates-header');
     if (header) {
@@ -1696,7 +1884,24 @@
       return section;
     };
 
-    nodes.forEach(node => {
+    const safeCopy = node => {
+      if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent || '');
+      if (node.nodeType !== Node.ELEMENT_NODE) return document.createDocumentFragment();
+
+      const allowedTags = new Set(['H2', 'H3', 'P', 'UL', 'OL', 'LI', 'STRONG', 'EM', 'BR']);
+      if (!allowedTags.has(node.tagName)) {
+        const fragment = document.createDocumentFragment();
+        Array.from(node.childNodes).forEach(child => fragment.appendChild(safeCopy(child)));
+        return fragment;
+      }
+
+      const element = document.createElement(node.tagName.toLowerCase());
+      Array.from(node.childNodes).forEach(child => element.appendChild(safeCopy(child)));
+      return element;
+    };
+
+    nodes.forEach(rawNode => {
+      const node = safeCopy(rawNode);
       if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) return;
       if (node.nodeType === Node.ELEMENT_NODE && ['H2', 'H3'].includes(node.tagName)) {
         section = document.createElement('section');
@@ -1787,8 +1992,7 @@
       alertSummary.appendChild(textEl('span', 'summary-badge info', 'Feed unavailable'));
     }
 
-    const sourceCount = document.querySelector('.source-count');
-    if (sourceCount) sourceCount.textContent = 'Live sources unavailable';
+    updateBriefingTrust({ stale: true });
 
     const opportunityCount = document.querySelector('.opportunity-count');
     if (opportunityCount) opportunityCount.textContent = '0 signals detected today';
@@ -2003,6 +2207,7 @@
     updateAiContext(news);
     renderBriefing(news);
     updateLiveMetrics(news);
+    updateBriefingTrust({ stale });
 
     const feedHeader = document.querySelector('.news-feed-header');
     if (feedHeader) {
@@ -2081,11 +2286,8 @@
       }
     }
 
-    // 4. Source count
-    const sourceCount = document.querySelector('.source-count');
-    if (sourceCount) {
-      sourceCount.textContent = `${news.length} sources analyzed`;
-    }
+    // 4. The briefing footer reports distinct live sources across rates and news.
+    updateBriefingTrust();
 
     // 5. Opportunity count
     const oppCount = document.querySelector('.opportunity-count');
@@ -2331,8 +2533,7 @@
     const messages = $('#ai-messages-container');
     if (!messages) return;
 
-    const hour = new Date().getHours();
-    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const greeting = getTimeGreeting();
 
     const wrapper = document.createElement('div');
     wrapper.className = 'ai-message ai-greeting';
@@ -2343,9 +2544,24 @@
 
     const content = document.createElement('div');
     content.className = 'ai-message-content';
-    content.innerHTML = `<p>${greeting}, ${profile.name.split(' ')[0]}. I'm your <strong>${appState.activePersona}</strong>.</p>
-<p>I can help you with price analysis, procurement decisions, risk scanning, and opportunity discovery for your <strong>${profile.businessType}</strong> business in <strong>${profile.city}</strong>.</p>
-<p>Ask me anything, or try one of the quick prompts below ↓</p>`;
+    const firstName = String(profile.name || '').trim().split(/\s+/)[0];
+    const intro = document.createElement('p');
+    intro.append(document.createTextNode(`${greeting}${firstName ? `, ${firstName}` : ''}. I'm your `));
+    intro.appendChild(textEl('strong', '', appState.activePersona));
+    intro.appendChild(document.createTextNode('.'));
+
+    const details = document.createElement('p');
+    if (profile.businessType && profile.city) {
+      details.append(document.createTextNode('I can help with price analysis, procurement decisions, risk scanning, and opportunity discovery for your '));
+      details.appendChild(textEl('strong', '', profile.businessType));
+      details.appendChild(document.createTextNode(' business in '));
+      details.appendChild(textEl('strong', '', profile.city));
+      details.appendChild(document.createTextNode('.'));
+    } else {
+      details.textContent = 'Complete your business profile to personalise price analysis, procurement decisions, risk scanning, and opportunity discovery.';
+    }
+
+    content.append(intro, details, textEl('p', '', 'Ask me anything, or try one of the quick prompts below ↓'));
 
     wrapper.append(avatar, content);
     messages.appendChild(wrapper);
@@ -3091,6 +3307,7 @@
     $('#auth-name-group').hidden = !signup;
     $('#auth-name').required = signup;
     $('#auth-password').autocomplete = signup ? 'new-password' : 'current-password';
+    $('#auth-password').minLength = 4;
     $('#auth-mode-toggle').textContent = signup ? 'I already have an account' : 'Create account';
     $('#auth-submit').textContent = signup ? 'Create account' : 'Sign in';
     $('#auth-email').value = profile.email || safeStorage('get', AUTH_USER_KEY)?.email || '';
@@ -3118,14 +3335,15 @@
     $('#auth-mode-toggle')?.addEventListener('click', () => openAuthModal(authMode === 'login' ? 'signup' : 'login'));
     $('#auth-form')?.addEventListener('submit', async event => {
       event.preventDefault();
+      const submittedMode = authMode;
       const payload = {
         email: $('#auth-email').value.trim(),
         password: $('#auth-password').value,
       };
-      if (authMode === 'signup') payload.name = $('#auth-name').value.trim();
+      if (submittedMode === 'signup') payload.name = $('#auth-name').value.trim();
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/${authMode === 'signup' ? 'signup' : 'login'}`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/${submittedMode === 'signup' ? 'signup' : 'login'}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -3135,13 +3353,27 @@
         localStorage.setItem(AUTH_TOKEN_KEY, data.token);
         safeStorage('set', AUTH_USER_KEY, data.user);
         profile.email = data.user.email;
-        if (!profile.name || profile.name === 'Vicky S.' || profile.name === 'Business Owner') profile.name = data.user.name;
+        if (!profile.name) profile.name = data.user.name;
         saveProfileToStorage();
         populateProfileForm();
         updateAuthButton();
         closeAuthModal();
-        showToast(`Signed in as ${data.user.name}.`);
-        loadDashboardData();
+        $('#auth-form').reset();
+
+        const hasBusinessProfile = Boolean(profile.businessType && profile.city && profile.items?.length);
+        if (hasBusinessProfile) {
+          showToast(
+            submittedMode === 'signup'
+              ? 'Account created successfully. Loading your dashboard.'
+              : `Signed in as ${data.user.name}.`
+          );
+          loadDashboardData();
+        } else {
+          switchView('workspace');
+          showToast(
+            `${submittedMode === 'signup' ? 'Account created successfully.' : `Signed in as ${data.user.name}.`} Complete your business profile to start seeing live markets and your morning briefing.`
+          );
+        }
       } catch (error) {
         showToast(error.message || 'Could not sign in.');
       }

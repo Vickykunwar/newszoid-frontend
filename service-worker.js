@@ -1,6 +1,6 @@
-const CACHE_NAME = 'newszoid-v2026-07-27-intelligence-v1';
-const OFFLINE_EDITION_CACHE = 'newszoid-offline-edition-v2026-07-27-intelligence-v1';
-const PRECACHE_URLS = ['/', '/index.html', '/style.css?v=2026-07-27-intelligence-v1', '/script.js?v=2026-07-27-intelligence-v1', '/logo-192.png', '/logo-icon.png', '/manifest.json'];
+const CACHE_NAME = 'newszoid-v2026-08-05-favicon-v5';
+const OFFLINE_EDITION_CACHE = 'newszoid-offline-edition-v2026-08-05-favicon-v5';
+const PRECACHE_URLS = ['/', '/index.html', '/style.css?v=2026-08-05-market-history-v3', '/script.js?v=2026-08-05-market-history-v3', '/favicon.ico', '/logo-192.png', '/logo-icon.png', '/manifest.json'];
 
 self.addEventListener('install', event => {
   event.waitUntil(

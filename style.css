@@ -816,6 +816,37 @@ body {
   margin-bottom: var(--space-4);
 }
 
+.briefing-kicker {
+  margin: 0 0 var(--space-2);
+  color: var(--color-accent-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.briefing-context {
+  max-width: 760px;
+  margin: calc(-1 * var(--space-2)) 0 var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.briefing-read-time,
+.briefing-freshness {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+.briefing-freshness {
+  color: var(--color-accent-primary);
+}
+
+.briefing-freshness.stale {
+  color: var(--color-gold);
+}
+
 .briefing-list {
   list-style: none;
   display: flex;
@@ -1860,6 +1891,14 @@ body {
   height: calc(100% - 24px);
 }
 
+.chart-status {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
 .chart-labels {
   display: flex;
   justify-content: space-between;
@@ -1867,6 +1906,63 @@ body {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: var(--color-text-muted);
+}
+
+.rate-history {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.rate-history-empty {
+  grid-column: 1 / -1;
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.rate-history-point {
+  min-width: 0;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
+}
+
+.rate-history-point.current {
+  border-color: rgba(255, 74, 31, 0.5);
+  background: rgba(255, 74, 31, 0.08);
+}
+
+.rate-history-date,
+.rate-history-price {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rate-history-date {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+}
+
+.rate-history-price {
+  margin-top: 3px;
+  color: var(--color-text-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .rate-history {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .material-stats {
@@ -3232,7 +3328,7 @@ body {
   position: fixed;
   left: 50%;
   bottom: calc(var(--mobile-nav-height) + var(--space-4));
-  z-index: 300;
+  z-index: 10000;
   max-width: min(420px, calc(100vw - 32px));
   padding: var(--space-3) var(--space-4);
   border: 1px solid rgba(255, 74, 31, 0.42);
